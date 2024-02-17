@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34525.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Snowflake", "src\EFCore.Snowflake\EFCore.Snowflake.csproj", "{19101FDD-1E5A-4F83-83BD-3BA1BEBD53D3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1209513A-3D00-4DAC-B622-B2A309B4BD92}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{69BB0CE4-F7B8-44D1-B923-7CAC9EF109FC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Snowflake.Tests", "test\EFCore.Snowflake.Tests\EFCore.Snowflake.Tests.csproj", "{FF59C6D4-CE50-475C-BED9-A58B4FC4D4A3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Snowflake.FunctionalTests", "test\EFCore.Snowflake.FunctionalTests\EFCore.Snowflake.FunctionalTests.csproj", "{6A29CB62-048D-4B31-AF26-74F0FC5107E1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{19101FDD-1E5A-4F83-83BD-3BA1BEBD53D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19101FDD-1E5A-4F83-83BD-3BA1BEBD53D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19101FDD-1E5A-4F83-83BD-3BA1BEBD53D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19101FDD-1E5A-4F83-83BD-3BA1BEBD53D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF59C6D4-CE50-475C-BED9-A58B4FC4D4A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF59C6D4-CE50-475C-BED9-A58B4FC4D4A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF59C6D4-CE50-475C-BED9-A58B4FC4D4A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF59C6D4-CE50-475C-BED9-A58B4FC4D4A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A29CB62-048D-4B31-AF26-74F0FC5107E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A29CB62-048D-4B31-AF26-74F0FC5107E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A29CB62-048D-4B31-AF26-74F0FC5107E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A29CB62-048D-4B31-AF26-74F0FC5107E1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{19101FDD-1E5A-4F83-83BD-3BA1BEBD53D3} = {1209513A-3D00-4DAC-B622-B2A309B4BD92}
+		{FF59C6D4-CE50-475C-BED9-A58B4FC4D4A3} = {69BB0CE4-F7B8-44D1-B923-7CAC9EF109FC}
+		{6A29CB62-048D-4B31-AF26-74F0FC5107E1} = {69BB0CE4-F7B8-44D1-B923-7CAC9EF109FC}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {779E9FEE-EBB5-443B-8DB6-EED43B4A6C4A}
+	EndGlobalSection
+EndGlobal

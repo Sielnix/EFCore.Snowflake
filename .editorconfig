@@ -1,0 +1,20 @@
+
+root = true
+
+# All Files
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+end_of_line = lf
+
+[*.cs]
+csharp_style_namespace_declarations = file_scoped:warning
+
+[*.{cs,vb}]
+dotnet_diagnostic.EF1001.severity = none # usage of entity framework internal api
+
+[*.{yml,yaml}]
+indent_size = 2

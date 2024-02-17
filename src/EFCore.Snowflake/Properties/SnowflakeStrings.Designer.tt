@@ -1,0 +1,10 @@
+<#
+    if (Session is null)
+    {
+        Session = new Microsoft.VisualStudio.TextTemplating.TextTemplatingSession();
+    }
+    
+    Session["ResourceFile"] = "SnowflakeStrings.resx";
+    Session["LoggingDefinitionsClass"] = "Diagnostics.Internal.SnowflakeLoggingDefinitions";
+#>
+<#@ include file="..\..\..\tools\Resources.tt" #>

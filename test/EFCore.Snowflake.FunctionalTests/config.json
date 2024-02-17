@@ -1,0 +1,7 @@
+{
+    "Test": {
+        "Snowflake": {
+            "DefaultConnectionString": "account=YOUR_ACCOUNT;host=UR_HOST.us-east-1.snowflakecomputing.com;user=UR_USER;password=UR_PASSWORD;db=TESTDB;schema=PUBLIC;warehouse=UR_WAREHOUSE"
+        }
+    }
+}
