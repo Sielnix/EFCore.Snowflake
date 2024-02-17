@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EFCore.Snowflake.Storage;
-internal class SnowflakeRelationalTransactionFactory : RelationalTransactionFactory
+
+public class SnowflakeRelationalTransactionFactory : RelationalTransactionFactory
 {
     public SnowflakeRelationalTransactionFactory(RelationalTransactionFactoryDependencies dependencies)
         : base(dependencies)

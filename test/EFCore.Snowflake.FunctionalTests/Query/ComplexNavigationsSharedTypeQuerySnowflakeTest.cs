@@ -45,7 +45,7 @@ public class ComplexNavigationsSharedTypeQuerySnowflakeTest :
         => AssertTranslationFailedWithDetails(
             () => base.GroupJoin_client_method_in_OrderBy(async),
             CoreStrings.QueryUnableToTranslateMethod(
-                "Microsoft.EntityFrameworkCore.Query.ComplexNavigationsQueryTestBase<EFCore.Snowflake.Core.FunctionalTests.Query.ComplexNavigationsSharedTypeQuerySnowflakeFixture>",
+                "Microsoft.EntityFrameworkCore.Query.ComplexNavigationsQueryTestBase<EFCore.Snowflake.FunctionalTests.Query.ComplexNavigationsSharedTypeQuerySnowflakeFixture>",
                 "ClientMethodNullableInt"));
 
     public override async Task GroupJoin_with_subquery_on_inner(bool async)

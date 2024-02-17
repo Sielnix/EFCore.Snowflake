@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EFCore.Snowflake.Storage.Internal.Mapping;
 
-internal class SnowflakeULongTypeMapping : ULongTypeMapping
+public class SnowflakeULongTypeMapping : ULongTypeMapping
 {
     public new static SnowflakeULongTypeMapping Default { get; } = new();
 

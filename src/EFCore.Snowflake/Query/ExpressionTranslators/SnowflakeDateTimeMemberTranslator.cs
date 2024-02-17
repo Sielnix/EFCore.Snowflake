@@ -59,22 +59,6 @@ public class SnowflakeDateTimeMemberTranslator : IMemberTranslator
             return translated;
         }
 
-        //if (declaringType == typeof(DateTime)
-        //    || declaringType == typeof(DateTimeOffset))
-        //{
-        //    var memberName = member.Name;
-
-        //    if (DatePartMapping.TryGetValue(memberName, out var datePart))
-        //    {
-        //        return _sqlExpressionFactory.Function(
-        //            "DATE_PART",
-        //            new[] { _sqlExpressionFactory.Fragment(datePart), instance! },
-        //            nullable: true,
-        //            argumentsPropagateNullability: new[] { false, true },
-        //            returnType);
-        //    }
-        //}
-
         var memberName = member.Name;
 
         if (DatePartMapping.TryGetValue(memberName, out var datePart))

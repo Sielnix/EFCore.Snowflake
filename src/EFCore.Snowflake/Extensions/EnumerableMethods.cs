@@ -5,10 +5,6 @@ namespace EFCore.Snowflake.Extensions;
 
 internal static class EnumerableMethods
 {
-    //public static MethodInfo AggregateWithoutSeed { get; }
-
-    //public static MethodInfo AggregateWithSeedWithoutSelector { get; }
-
     public static MethodInfo AggregateWithSeedSelector { get; }
 
     public static MethodInfo All { get; }
@@ -17,8 +13,6 @@ internal static class EnumerableMethods
 
     public static MethodInfo AnyWithPredicate { get; }
 
-    //public static Append { get; }
-
     public static MethodInfo AsEnumerable { get; }
 
     public static MethodInfo Cast { get; }
@@ -26,8 +20,6 @@ internal static class EnumerableMethods
     public static MethodInfo Concat { get; }
 
     public static MethodInfo Contains { get; }
-
-    //public static MethodInfo ContainsWithComparer { get; }
 
     public static MethodInfo CountWithoutPredicate { get; }
 
@@ -39,17 +31,11 @@ internal static class EnumerableMethods
 
     public static MethodInfo Distinct { get; }
 
-    //public static MethodInfo DistinctWithComparer { get; }
-
     public static MethodInfo ElementAt { get; }
 
     public static MethodInfo ElementAtOrDefault { get; }
 
-    //public static MethodInfo Empty { get; }
-
     public static MethodInfo Except { get; }
-
-    //public static MethodInfo ExceptWithComparer { get; }
 
     public static MethodInfo FirstWithoutPredicate { get; }
 
@@ -63,25 +49,13 @@ internal static class EnumerableMethods
 
     public static MethodInfo GroupByWithKeyElementSelector { get; }
 
-    //public static MethodInfo GroupByWithKeySelectorAndComparer { get; }
-
-    //public static MethodInfo GroupByWithKeyElementSelectorAndComparer { get; }
-
     public static MethodInfo GroupByWithKeyElementResultSelector { get; }
 
     public static MethodInfo GroupByWithKeyResultSelector { get; }
 
-    //public static MethodInfo GroupByWithKeyResultSelectorAndComparer { get; }
-
-    //public static MethodInfo GroupByWithKeyElementResultSelectorAndComparer { get; }
-
     public static MethodInfo GroupJoin { get; }
 
-    //public static MethodInfo GroupJoinWithComparer { get; }
-
     public static MethodInfo Intersect { get; }
-
-    //public static MethodInfo IntersectWithComparer { get; }
 
     public static MethodInfo Join { get; }
 
@@ -111,17 +85,7 @@ internal static class EnumerableMethods
 
     public static MethodInfo OrderBy { get; }
 
-    //public static MethodInfo OrderByWithComparer { get; }
-
     public static MethodInfo OrderByDescending { get; }
-
-    //public static MethodInfo OrderByDescendingWithComparer { get; }
-
-    //public static MethodInfo Prepend { get; }
-
-    //public static MethodInfo Range { get; }
-
-    //public static MethodInfo Repeat { get; }
 
     public static MethodInfo Reverse { get; }
 
@@ -131,15 +95,9 @@ internal static class EnumerableMethods
 
     public static MethodInfo SelectManyWithoutCollectionSelector { get; }
 
-    //public static MethodInfo SelectManyWithoutCollectionSelectorOrdinal { get; }
-
     public static MethodInfo SelectManyWithCollectionSelector { get; }
 
-    //public static MethodInfo SelectManyWithCollectionSelectorOrdinal { get; }
-
     public static MethodInfo SequenceEqual { get; }
-
-    //public static MethodInfo SequenceEqualWithComparer { get; }
 
     public static MethodInfo SingleWithoutPredicate { get; }
 
@@ -152,84 +110,34 @@ internal static class EnumerableMethods
     public static MethodInfo Skip { get; }
 
     public static MethodInfo SkipWhile { get; }
-
-    //public static MethodInfo SkipWhileOrdinal { get; }
-
+    
     public static MethodInfo Take { get; }
 
     public static MethodInfo TakeWhile { get; }
 
-    //public static MethodInfo TakeWhileOrdinal { get; }
-
     public static MethodInfo ThenBy { get; }
-
-    //public static MethodInfo ThenByWithComparer { get; }
 
     public static MethodInfo ThenByDescending { get; }
 
-    //public static MethodInfo ThenByDescendingWithComparer { get; }
-
     public static MethodInfo ToArray { get; }
-
-    //public static MethodInfo ToDictionaryWithKeySelector { get; }
-    //public static MethodInfo ToDictionaryWithKeySelectorAndComparer { get; }
-    //public static MethodInfo ToDictionaryWithKeyElementSelector { get; }
-    //public static MethodInfo ToDictionaryWithKeyElementSelectorAndComparer { get; }
-
-    //public static MethodInfo ToHashSet { get; }
-    //public static MethodInfo ToHashSetWithComparer { get; }
-
+    
     public static MethodInfo ToList { get; }
-
-    //public static MethodInfo ToLookupWithKeySelector { get; }
-    //public static MethodInfo ToLookupWithKeySelectorAndComparer { get; }
-    //public static MethodInfo ToLookupWithKeyElementSelector { get; }
-    //public static MethodInfo ToLookupWithKeyElementSelectorAndComparer { get; }
 
     public static MethodInfo Union { get; }
 
-    //public static MethodInfo UnionWithComparer { get; }
-
     public static MethodInfo Where { get; }
-
-    //public static MethodInfo WhereOrdinal { get; }
 
     public static MethodInfo ZipWithSelector { get; }
 
-    // private static Dictionary<Type, MethodInfo> SumWithoutSelectorMethods { get; }
     private static Dictionary<Type, MethodInfo> SumWithSelectorMethods { get; }
-
-    // private static Dictionary<Type, MethodInfo> AverageWithoutSelectorMethods { get; }
     private static Dictionary<Type, MethodInfo> AverageWithSelectorMethods { get; }
     private static Dictionary<Type, MethodInfo> MaxWithoutSelectorMethods { get; }
     private static Dictionary<Type, MethodInfo> MaxWithSelectorMethods { get; }
     private static Dictionary<Type, MethodInfo> MinWithoutSelectorMethods { get; }
     private static Dictionary<Type, MethodInfo> MinWithSelectorMethods { get; }
 
-    // Not currently used
-    //
-    // public static bool IsSumWithoutSelector(MethodInfo methodInfo)
-    //     => SumWithoutSelectorMethods.Values.Contains(methodInfo);
-    //
-    // public static bool IsSumWithSelector(MethodInfo methodInfo)
-    //     => methodInfo.IsGenericMethod
-    //         && SumWithSelectorMethods.Values.Contains(methodInfo.GetGenericMethodDefinition());
-    //
-    // public static bool IsAverageWithoutSelector(MethodInfo methodInfo)
-    //     => AverageWithoutSelectorMethods.Values.Contains(methodInfo);
-    //
-    // public static bool IsAverageWithSelector(MethodInfo methodInfo)
-    //     => methodInfo.IsGenericMethod
-    //         && AverageWithSelectorMethods.Values.Contains(methodInfo.GetGenericMethodDefinition());
-    //
-    // public static MethodInfo GetSumWithoutSelector(Type type)
-    //     => SumWithoutSelectorMethods[type];
-
     public static MethodInfo GetSumWithSelector(Type type)
         => SumWithSelectorMethods[type];
-
-    // public static MethodInfo GetAverageWithoutSelector(Type type)
-    //     => AverageWithoutSelectorMethods[type];
 
     public static MethodInfo GetAverageWithSelector(Type type)
         => AverageWithSelectorMethods[type];
@@ -570,19 +478,15 @@ internal static class EnumerableMethods
             typeof(decimal?)
         };
 
-        // AverageWithoutSelectorMethods = new Dictionary<Type, MethodInfo>();
         AverageWithSelectorMethods = new Dictionary<Type, MethodInfo>();
         MaxWithoutSelectorMethods = new Dictionary<Type, MethodInfo>();
         MaxWithSelectorMethods = new Dictionary<Type, MethodInfo>();
         MinWithoutSelectorMethods = new Dictionary<Type, MethodInfo>();
         MinWithSelectorMethods = new Dictionary<Type, MethodInfo>();
-        // SumWithoutSelectorMethods = new Dictionary<Type, MethodInfo>();
         SumWithSelectorMethods = new Dictionary<Type, MethodInfo>();
 
         foreach (var type in numericTypes)
         {
-            // AverageWithoutSelectorMethods[type] = GetMethod(
-            //     nameof(Enumerable.Average), 0, types => new[] { typeof(IEnumerable<>).MakeGenericType(type) });
             AverageWithSelectorMethods[type] = GetMethod(
                 nameof(Enumerable.Average), 1,
                 types => new[] { typeof(IEnumerable<>).MakeGenericType(types[0]), typeof(Func<,>).MakeGenericType(types[0], type) });
@@ -596,8 +500,6 @@ internal static class EnumerableMethods
             MinWithSelectorMethods[type] = GetMethod(
                 nameof(Enumerable.Min), 1,
                 types => new[] { typeof(IEnumerable<>).MakeGenericType(types[0]), typeof(Func<,>).MakeGenericType(types[0], type) });
-            // SumWithoutSelectorMethods[type] = GetMethod(
-            //     nameof(Enumerable.Sum), 0, types => new[] { typeof(IEnumerable<>).MakeGenericType(type) });
             SumWithSelectorMethods[type] = GetMethod(
                 nameof(Enumerable.Sum), 1,
                 types => new[] { typeof(IEnumerable<>).MakeGenericType(types[0]), typeof(Func<,>).MakeGenericType(types[0], type) });

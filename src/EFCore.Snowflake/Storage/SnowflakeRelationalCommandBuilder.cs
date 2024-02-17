@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EFCore.Snowflake.Storage;
-internal class SnowflakeRelationalCommandBuilder : RelationalCommandBuilder
+
+public class SnowflakeRelationalCommandBuilder : RelationalCommandBuilder
 {
     public SnowflakeRelationalCommandBuilder(RelationalCommandBuilderDependencies dependencies)
         : base(dependencies)

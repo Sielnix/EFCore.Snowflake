@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EFCore.Snowflake.Storage.Internal.Mapping;
 
-internal class SnowflakeUShortTypeMapping : UShortTypeMapping
+public class SnowflakeUShortTypeMapping : UShortTypeMapping
 {
     public new static SnowflakeUShortTypeMapping Default { get; } = new();
 

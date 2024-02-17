@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EFCore.Snowflake.Storage.Internal.Mapping;
 
-internal class SnowflakeTimeOnlyTypeMapping : TimeOnlyTypeMapping
+public class SnowflakeTimeOnlyTypeMapping : TimeOnlyTypeMapping
 {
     public new static SnowflakeTimeOnlyTypeMapping Default { get; } = new(SnowflakeStoreTypeNames.DefaultTimePrecision);
     

@@ -14,8 +14,7 @@ public class SnowflakeMemberTranslatorProvider : RelationalMemberTranslatorProvi
         AddTranslators(new IMemberTranslator[]
         {
             new SnowflakeDateTimeMemberTranslator(typeMappingSource, sqlExpressionFactory),
-            new SnowflakeStringMemberTranslator(sqlExpressionFactory),
-            new SnowflakeTimeSpanMemberTranslator(sqlExpressionFactory)
+            new SnowflakeStringMemberTranslator(sqlExpressionFactory)
         });
     }
 }

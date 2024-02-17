@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EFCore.Snowflake.Storage.Internal.Mapping;
 
-internal class SnowflakeSByteTypeMapping : SByteTypeMapping
+public class SnowflakeSByteTypeMapping : SByteTypeMapping
 {
     public new static SnowflakeSByteTypeMapping Default { get; } = new();
 

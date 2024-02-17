@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.Internal;
 
 namespace EFCore.Snowflake.Query;
 
-internal class SnowflakeQuerySqlGenerator : QuerySqlGenerator
+public class SnowflakeQuerySqlGenerator : QuerySqlGenerator
 {
     private static readonly Dictionary<ExpressionType, string> binaryFunctions = new()
     {
@@ -177,43 +177,4 @@ internal class SnowflakeQuerySqlGenerator : QuerySqlGenerator
                        || existingTypeMapping.Converter is not null && existingTypeMapping.Converter.Equals(typeMapping.Converter));
         }
     }
-
-    ///// <summary>
-    ///// IT IS COPY & PASTE from base method EXCEPT it doesn't check if parameter was already used for its re-usage.
-    ///// </summary>
-    ///// <param name="sqlParameterExpression"></param>
-    ///// <returns></returns>
-    //protected override Expression VisitSqlParameter(SqlParameterExpression sqlParameterExpression)
-    //{
-    //    string invariantName = sqlParameterExpression.Name;
-    //    string parameterName = sqlParameterExpression.Name;
-
-    //    parameterName = GetUniqueParameterName(parameterName);
-    //    Sql.AddParameter(
-    //        invariantName,
-    //        _sqlGenerationHelper.GenerateParameterName(parameterName),
-    //        sqlParameterExpression.TypeMapping!,
-    //        sqlParameterExpression.IsNullable);
-
-    //    Sql.Append(_sqlGenerationHelper.GenerateParameterNamePlaceholder(parameterName));
-
-    //    return sqlParameterExpression;
-
-    //    string GetUniqueParameterName(string currentName)
-    //    {
-    //        _repeatedParameterCounts ??= new Dictionary<string, int>();
-
-    //        if (!_repeatedParameterCounts.TryGetValue(currentName, out var currentCount))
-    //        {
-    //            _repeatedParameterCounts[currentName] = 0;
-
-    //            return currentName;
-    //        }
-
-    //        currentCount++;
-    //        _repeatedParameterCounts[currentName] = currentCount;
-
-    //        return currentName + "_" + currentCount;
-    //    }
-    //}
 }

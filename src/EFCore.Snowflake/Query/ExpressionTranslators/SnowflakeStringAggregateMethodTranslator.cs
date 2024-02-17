@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace EFCore.Snowflake.Query.ExpressionTranslators;
-internal class SnowflakeStringAggregateMethodTranslator : IAggregateMethodCallTranslator
+
+public class SnowflakeStringAggregateMethodTranslator : IAggregateMethodCallTranslator
 {
     private static readonly MethodInfo StringConcatMethod
         = typeof(string).GetRuntimeMethod(nameof(string.Concat), new[] { typeof(IEnumerable<string>) })!;
@@ -42,33 +43,5 @@ internal class SnowflakeStringAggregateMethodTranslator : IAggregateMethodCallTr
         }
 
         return null;
-
-        //return _sqlExpressionFactory.Function(
-        //    "CONCAT",
-        //    new[] { instance },
-        //    nullable: true,
-        //    argumentsPropagateNullability: new[] { true },
-        //    method.ReturnType,
-        //    instance.TypeMapping);
-
-        //return
-        //    _sqlExpressionFactory.Coalesce(
-        //        _sqlExpressionFactory.a(
-        //            _sqlExpressionFactory,
-        //            "STRING_AGG",
-        //            new[]
-        //            {
-        //                sqlExpression,
-        //                _sqlExpressionFactory.ApplyTypeMapping(
-        //                    method == StringJoinMethod ? arguments[0] : _sqlExpressionFactory.Constant(string.Empty, typeof(string)),
-        //                    sqlExpression.TypeMapping)
-        //            },
-        //            source,
-        //            enumerableArgumentIndex: 0,
-        //            nullable: true,
-        //            argumentsPropagateNullability: new[] { false, true },
-        //            typeof(string)),
-        //        _sqlExpressionFactory.Constant(string.Empty, typeof(string)),
-        //        resultTypeMapping);
     }
 }

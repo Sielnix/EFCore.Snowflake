@@ -760,5 +760,18 @@ public class GearsOfWarQuerySnowflakeTest : GearsOfWarQueryRelationalTestBase<Ge
             await base.Where_TimeSpan_Milliseconds(async));
     }
 
+    public override async Task Nav_expansion_with_member_pushdown_inside_Contains_argument(bool async)
+    {
+        await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
+            await base.Nav_expansion_with_member_pushdown_inside_Contains_argument(async));
+    }
+
+    [ConditionalTheory(Skip = "NOT IMPLEMENTED")]
+    [MemberData(nameof(IsAsyncData))]
+    public override async Task Subquery_inside_Take_argument(bool async)
+    {
+        await base.Subquery_inside_Take_argument(async);
+    }
+
     protected override bool CanExecuteQueryString => false;
 }

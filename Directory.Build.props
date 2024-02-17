@@ -1,57 +1,24 @@
 <Project>
   <PropertyGroup>
-    <VersionPrefix>8.0.0-preview.1</VersionPrefix>
+    <VersionPrefix>8.0.2-preview.1</VersionPrefix>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest</AnalysisLevel>
     <!-- <NoWarn>NU5105</NoWarn> -->
-    <!-- <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage> -->
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <!-- <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)Npgsql.snk</AssemblyOriginatorKeyFile> -->
     <!-- <SignAssembly>true</SignAssembly> -->
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <ImplicitUsings>true</ImplicitUsings>
-    <!-- <GenerateDocumentationFile>true</GenerateDocumentationFile> -->
 
+    <PackageTags>Entity Framework Core;entity-framework-core;EF;Data;O/RM;EntityFramework;EntityFrameworkCore;EFCore;Snowflake</PackageTags>
     <Copyright>Copyright 2024 © Krzysztof Sielaff</Copyright>
-    <Company>Npgsql</Company>
+    <Authors>Krzysztof Sielaff</Authors>
+    <Company>Sielnix</Company>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <PackageLicenseExpression>Fair</PackageLicenseExpression>
+    <PackageLicenseExpression>LGPL-3.0-only</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Sielnix/EFCore.Snowflake</PackageProjectUrl>
-    <!-- <PackageIcon>postgresql.png</PackageIcon> -->
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
-
-  <!-- <ItemGroup> -->
-    <!-- <None Include="$(MSBuildThisFileDirectory)postgresql.png" Pack="true" PackagePath="" /> -->
-  <!-- </ItemGroup> -->
-
-  <!-- <ItemGroup> -->
-    <!-- <Using Include="System.Diagnostics" /> -->
-    <!-- <Using Include="System.Linq.Expressions" /> -->
-    <!-- <Using Include="System.Reflection" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.ChangeTracking" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Diagnostics" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Design" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Metadata.Builders" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Infrastructure" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Metadata" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Metadata.Conventions" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Migrations" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Migrations.Operations" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Query" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Query.SqlExpressions" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Scaffolding" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Scaffolding.Metadata" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Storage" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Storage.ValueConversion" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Update" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.ValueGeneration" /> -->
-    <!-- <Using Include="Microsoft.EntityFrameworkCore.Utilities" /> -->
-    <!-- <Using Include="Microsoft.Extensions.Logging" /> -->
-    <!-- <Using Include="Microsoft.Extensions.DependencyInjection" /> -->
-    <!-- <Using Include="Npgsql" /> -->
-    <!-- <Using Include="NpgsqlTypes" /> -->
-  <!-- </ItemGroup> -->
 
 </Project>

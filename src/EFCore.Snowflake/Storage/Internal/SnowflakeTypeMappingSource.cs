@@ -96,158 +96,8 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
         ];
     }
 
-    //private bool isSearching = false;
-    //private bool wasCalled = false;
-
-    //private const string searchCol = "timeOnlyCol";
-
-    //public override CoreTypeMapping? FindMapping(IProperty property)
-    //{
-    //    if (property.Name == searchCol)
-    //    {
-    //        isSearching = true;
-    //        FindMappingBase(property);
-    //    }
-
-    //    var result = base.FindMapping(property);
-
-    //    //if (wasCalled)
-    //    //{
-    //    //    wasCalled = false;
-
-    //    //    int i = 1;
-    //    //    foreach (var principal in property.GetPrincipals())
-    //    //    {
-
-    //    //        foreach (PropertyDescriptor descriptor in TypeDescriptor.GetProperties(principal))
-    //    //        {
-    //    //            Console.WriteLine($"PRINCIPAL {i}");
-    //    //            string name = descriptor.Name;
-    //    //            object value = descriptor.GetValue(principal);
-    //    //            Console.WriteLine("{0}={1}", name, value);
-    //    //            i++;
-    //    //        }
-    //    //    }
-    //    //}
-
-    //    isSearching = false;
-    //    if (property.Name == searchCol)
-    //    {
-    //        Console.WriteLine($"looking for mapping for property {property}, name {property.Name}, result is NUll {result == null}");
-    //    }
-
-
-    //    return result;
-    //}
-
-    //public CoreTypeMapping? FindMappingBase(IProperty property)
-    //{
-    //    var principals = property.GetPrincipals();
-
-    //    string? storeTypeName = null;
-    //    bool? isFixedLength = null;
-    //    // ReSharper disable once ForCanBeConvertedToForeach
-    //    for (var i = 0; i < principals.Count; i++)
-    //    {
-    //        var principal = principals[i];
-    //        if (storeTypeName == null)
-    //        {
-    //            var columnType = (string?)principal[RelationalAnnotationNames.ColumnType];
-    //            if (columnType != null)
-    //            {
-    //                storeTypeName = columnType;
-    //            }
-    //        }
-
-    //        isFixedLength ??= principal.IsFixedLength();
-    //    }
-
-    //    bool? unicode = null;
-    //    int? size = null;
-    //    int? precision = null;
-    //    int? scale = null;
-    //    var storeTypeNameBase = ParseStoreTypeName(storeTypeName, ref unicode, ref size, ref precision, ref scale);
-
-    //    return FindMappingWithConversion(
-    //        new RelationalTypeMappingInfo(principals, storeTypeName, storeTypeNameBase, unicode, isFixedLength, size, precision, scale),
-    //        principals);
-    //}
-
-
-    //private RelationalTypeMapping? FindMappingWithConversion(
-    //    RelationalTypeMappingInfo mappingInfo,
-    //    IReadOnlyList<IProperty>? principals)
-    //{
-    //    Type? providerClrType = null;
-    //    ValueConverter? customConverter = null;
-    //    CoreTypeMapping? elementMapping = null;
-    //    if (principals != null)
-    //    {
-    //        for (var i = 0; i < principals.Count; i++)
-    //        {
-    //            var principal = principals[i];
-    //            if (providerClrType == null)
-    //            {
-    //                var providerType = principal.GetProviderClrType();
-    //                if (providerType != null)
-    //                {
-    //                    providerClrType = providerType.UnwrapNullableType();
-    //                }
-    //            }
-
-    //            if (customConverter == null)
-    //            {
-    //                var converter = principal.GetValueConverter();
-    //                if (converter != null)
-    //                {
-    //                    customConverter = converter;
-    //                }
-    //            }
-
-    //            if (elementMapping == null)
-    //            {
-    //                var element = principal.GetElementType();
-    //                if (element != null)
-    //                {
-    //                    elementMapping = FindMapping(element);
-    //                    mappingInfo = mappingInfo with { ElementTypeMapping = (RelationalTypeMapping?)elementMapping };
-    //                }
-    //            }
-    //        }
-    //    }
-
-    //    //var resolvedMapping = FindMappingWithConversion(mappingInfo, providerClrType, customConverter);
-    //    PrintObject(mappingInfo);
-    //    PrintObject(providerClrType);
-    //    PrintObject(customConverter);
-    //    PrintObject(mappingInfo.ElementTypeMapping);
-
-    //    //ValidateMapping(resolvedMapping, principals?[0]);
-
-    //    return null;
-    //}
-
-    //private void PrintObject<T>(T? obj, [CallerArgumentExpression(nameof(obj))] string? expr = null)
-    //{
-    //    Console.WriteLine($"Object {expr}");
-    //    if (obj == null)
-    //    {
-    //        Console.WriteLine("IS NULL");
-    //        return;
-    //    }
-
-    //    foreach (PropertyDescriptor descriptor in TypeDescriptor.GetProperties(obj))
-    //    {
-    //        string name = descriptor.Name;
-    //        object value = descriptor.GetValue(obj);
-    //        Console.WriteLine("{0}={1}", name, value);
-    //    }
-    //}
-
     protected override RelationalTypeMapping? FindMapping(in RelationalTypeMappingInfo mappingInfo)
     {
-        DoLog(mappingInfo);
-
         RelationalTypeMapping? result = base.FindMapping(mappingInfo);
 
         if (result == null)
@@ -257,58 +107,7 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
 
         return result;
     }
-
-    private static HashSet<string> FoundTypeNames = new();
-
-    private void DoLog(in RelationalTypeMappingInfo mappingInfo)
-    {
-        //if (isSearching)
-        //{
-        //    foreach (PropertyDescriptor descriptor in TypeDescriptor.GetProperties(mappingInfo))
-        //    {
-        //        string name = descriptor.Name;
-        //        object value = descriptor.GetValue(mappingInfo);
-        //        Console.WriteLine("{0}={1}", name, value);
-        //    }
-
-        //    wasCalled = true;
-        //}
-
-
-
-        //bool found = false;
-        //if (mappingInfo.StoreTypeName is not null && FoundTypeNames.Add(mappingInfo.StoreTypeName))
-        //{
-        //    found = true;
-        //}
-
-        //if (mappingInfo.StoreTypeNameBase is not null && FoundTypeNames.Add(mappingInfo.StoreTypeNameBase))
-        //{
-        //    found = true;
-        //}
-
-        //if (found)
-        //{
-        //    File.WriteAllLines("C:\\repo\\out.txt", FoundTypeNames);
-        //}
-
-        if (mappingInfo.ClrType is null)
-        {
-            Console.WriteLine(PrettyPrint(mappingInfo));
-        }
-
-    }
-
-    private string PrettyPrint<T>(T? obj)
-    {
-        if (obj is null)
-        {
-            return "NULL";
-        }
-
-        return System.Text.Json.JsonSerializer.Serialize(obj);
-    }
-
+    
     private RelationalTypeMapping? FindRawMapping(in RelationalTypeMappingInfo mappingInfo)
     {
         Type? clrType = mappingInfo.ClrType;
@@ -401,11 +200,6 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
                 }
             }
         }
-
-        //if (clrType != null && clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(Nullable<>))
-        //{
-        //    int i = 5;
-        //}
 
         if (clrType != null)
         {

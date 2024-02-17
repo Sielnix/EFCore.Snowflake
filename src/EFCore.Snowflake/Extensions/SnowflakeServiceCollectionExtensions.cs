@@ -72,7 +72,6 @@ public static class SnowflakeServiceCollectionExtensions
             .TryAdd<LoggingDefinitions, SnowflakeLoggingDefinitions>()
             .TryAdd<IDatabaseProvider, DatabaseProvider<SnowflakeOptionsExtension>>()
             .TryAdd<IRelationalTypeMappingSource, SnowflakeTypeMappingSource>()
-            .TryAdd<IModelValidator, SnowflakeModelValidator>()
             .TryAdd<IProviderConventionSetBuilder, SnowflakeConventionSetBuilder>()
             .TryAdd<ISqlGenerationHelper, SnowflakeSqlGenerationHelper>()
             .TryAdd<IRelationalAnnotationProvider, SnowflakeAnnotationProvider>()
@@ -83,19 +82,13 @@ public static class SnowflakeServiceCollectionExtensions
             .TryAdd<IMigrationsSqlGenerator, SnowflakeMigrationsSqlGenerator>()
             .TryAdd<IRelationalDatabaseCreator, SnowflakeDatabaseCreator>()
             .TryAdd<IHistoryRepository, SnowflakeHistoryRepository>()
-            .TryAdd<IQueryableMethodTranslatingExpressionVisitorFactory, SnowflakeQueryableMethodTranslatingExpressionVisitorFactory>()
             .TryAdd<IAggregateMethodCallTranslatorProvider, SnowflakeAggregateMethodCallTranslatorProvider>()
             .TryAdd<IMemberTranslatorProvider, SnowflakeMemberTranslatorProvider>()
             .TryAdd<IMethodCallTranslatorProvider, SnowflakeMethodCallTranslatorProvider>()
             .TryAdd<IUpdateSqlGenerator, SnowflakeUpdateSqlGenerator>()
-            //.TryAdd<IQueryCompiler, SnowflakeQueryCompiler>()
             .TryAdd<IQuerySqlGeneratorFactory, SnowflakeQuerySqlGeneratorFactory>()
             .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, SnowflakeSqlTranslatingExpressionVisitorFactory>()
-            .TryAdd<ISqlExpressionFactory, SnowflakeSqlExpressionFactory>()
-            .TryAdd<IParameterNameGeneratorFactory, SnowflakeParameterNameGeneratorFactory>()
             .TryAdd<IRelationalCommandBuilderFactory, SnowflakeRelationalCommandBuilderFactory>()
-            // todo: remove
-            .TryAdd<IMigrationsModelDiffer, SnowflakeMigrationModelDiffer>()
             .TryAddProviderSpecificServices(b => b
                 .TryAddScoped<ISnowflakeConnection, SnowflakeConnection>())
             .TryAddCoreServices();

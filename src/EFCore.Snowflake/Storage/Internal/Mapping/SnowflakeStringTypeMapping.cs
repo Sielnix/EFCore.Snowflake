@@ -2,7 +2,8 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EFCore.Snowflake.Storage.Internal.Mapping;
-internal class SnowflakeStringTypeMapping : StringTypeMapping
+
+public class SnowflakeStringTypeMapping : StringTypeMapping
 {
     public const int MaxSize = 16777216;
     

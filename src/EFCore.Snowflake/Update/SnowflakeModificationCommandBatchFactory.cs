@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore.Update;
 
 namespace EFCore.Snowflake.Update;
-internal class SnowflakeModificationCommandBatchFactory : IModificationCommandBatchFactory
+
+public class SnowflakeModificationCommandBatchFactory : IModificationCommandBatchFactory
 {
     private readonly ModificationCommandBatchFactoryDependencies _dependencies;
 

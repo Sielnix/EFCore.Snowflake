@@ -16,19 +16,11 @@ public class SnowflakeSqlGenerationHelper : RelationalSqlGenerationHelper
         return name.StartsWith(":", StringComparison.Ordinal)
             ? name
             : ":" + name;
-        //return "?";
     }
 
     public override void GenerateParameterName(StringBuilder builder, string name)
     {
-        //builder.Append("?");
         builder.Append(':').Append(name);
-    }
-
-    public override string GenerateParameterNamePlaceholder(string name)
-    {
-        //ThrowWrongGenerateParameterName();
-        return base.GenerateParameterNamePlaceholder(name);
     }
 
     public override void GenerateParameterNamePlaceholder(StringBuilder builder, string name)

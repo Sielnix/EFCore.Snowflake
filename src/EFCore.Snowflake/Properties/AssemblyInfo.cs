@@ -1,3 +1,3 @@
 using Microsoft.EntityFrameworkCore.Design;
 
-[assembly: DesignTimeProviderServices("EWFCore.Snowflake.Core.Design.Internal.SnowflakeDesignTimeServices")]
+[assembly: DesignTimeProviderServices("EFCore.Snowflake.Design.Internal.SnowflakeDesignTimeServices")]

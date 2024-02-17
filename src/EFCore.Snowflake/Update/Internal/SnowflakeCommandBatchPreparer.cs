@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.Update.Internal;
 
 namespace EFCore.Snowflake.Update.Internal;
-internal class SnowflakeCommandBatchPreparer : CommandBatchPreparer
+
+public class SnowflakeCommandBatchPreparer : CommandBatchPreparer
 {
     public SnowflakeCommandBatchPreparer(CommandBatchPreparerDependencies dependencies)
         : base(dependencies)

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Update;
 
 namespace EFCore.Snowflake.Update;
 
-internal class SnowflakeModificationCommandBatch : SingularModificationCommandBatch
+public class SnowflakeModificationCommandBatch : SingularModificationCommandBatch
 {
     // todo: try to allow batches where no read is applied, as in sql server
     private List<IReadOnlyModificationCommand>? _additionalModificationCommands = null;

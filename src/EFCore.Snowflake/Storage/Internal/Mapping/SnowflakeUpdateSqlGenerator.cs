@@ -8,7 +8,8 @@ using Microsoft.EntityFrameworkCore.Update;
 using Array = System.Array;
 
 namespace EFCore.Snowflake.Storage.Internal.Mapping;
-internal class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
+
+public class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
 {
     public SnowflakeUpdateSqlGenerator(UpdateSqlGeneratorDependencies dependencies)
         : base(dependencies)
@@ -18,12 +19,6 @@ internal class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
 
     protected new virtual SnowflakeSqlGenerationHelper SqlGenerationHelper { get; }
 
-    public override ResultSetMapping AppendInsertOperation(StringBuilder commandStringBuilder, IReadOnlyModificationCommand command,
-        int commandPosition, out bool requiresTransaction)
-    {
-        return base.AppendInsertOperation(commandStringBuilder, command, commandPosition, out requiresTransaction);
-    }
-
     public virtual ResultSetMapping AppendPostModificationSelectOperation(
         StringBuilder commandStringBuilder,
         IReadOnlyModificationCommand command,
@@ -31,13 +26,6 @@ internal class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
         out bool requiresTransaction)
     {
         IReadOnlyList<IColumnModification> operations = command.ColumnModifications;
-        //List<IColumnModification> keyOperations = operations.Where(o => o.IsKey).ToList();
-        //List<IColumnModification> readOperations = operations.Where(o => o.IsRead).ToList();
-
-        //if (!readOperations.Any())
-        //{
-        //    throw new InvalidOperationException("Post modification select shouldn't be called if there are zero reads");
-        //}
 
         requiresTransaction = true;
 
@@ -105,17 +93,6 @@ internal class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
             wrapInBracket: !useSelect,
             useSelect ? writeOperations : forCommandHeaderOperations);
 
-        //if (useSelect)
-        //{
-            
-        //}
-        //else
-        //{
-        //    AppendValues(commandStringBuilder, name, schema, forCommandHeaderOperations);
-        //}
-        //AppendValuesHeader(commandStringBuilder, writeOperations);
-        //AppendValues(commandStringBuilder, name, schema, forCommandHeaderOperations);
-        //AppendReturningClause(commandStringBuilder, readOperations);
         commandStringBuilder.AppendLine(SqlGenerationHelper.StatementTerminator);
     }
 
@@ -153,14 +130,6 @@ internal class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
         }
     }
 
-    //protected override void AppendValuesHeader(
-    //    StringBuilder commandStringBuilder,
-    //    IReadOnlyList<IColumnModification> operations)
-    //{
-    //    commandStringBuilder.AppendLine();
-    //    commandStringBuilder.Append(operations.Any() ? "SELECT " : "VALUES ");
-    //}
-
     protected virtual void AppendValues(
         StringBuilder commandStringBuilder,
         string name,
@@ -184,37 +153,7 @@ internal class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
                         }
                         else
                         {
-                            //if (o.TypeMapping is SnowflakeSemiStructuredTypeMapping semiStructured)
-                            //{
-                            //    sb.Append(semiStructured.InsertWrapFunction).Append("(");
-                            //    g.SqlGenerationHelper.GenerateParameterNamePlaceholder(sb, o.ParameterName);
-                            //    sb.Append(")");
-                            //}
-                            //else
-                            //{
-                                
-                            //}
-
                             g.SqlGenerationHelper.GenerateParameterNamePlaceholder(sb, o.ParameterName, o.TypeMapping);
-
-                            //bool wrapParseJson = o.TypeMapping is SnowflakeSemiStructuredTypeMapping
-                            //{
-                            //    RequiresParseJsonWrap: true
-                            //};
-
-                            //if (wrapParseJson)
-                            //{
-                            //    sb.Append("PARSE_JSON(");
-                            //    g.SqlGenerationHelper.GenerateParameterNamePlaceholder(sb, o.ParameterName);
-                            //    sb.Append(")");
-                            //}
-                            //else
-                            //{
-                            //    sb.Append("TO_VARIANT(");
-                            //    g.SqlGenerationHelper.GenerateParameterNamePlaceholder(sb, o.ParameterName);
-                            //    sb.Append(")");
-                            //    //g.SqlGenerationHelper.GenerateParameterNamePlaceholder(sb, o.ParameterName);
-                            //}
                         }
                     }
                     else
@@ -269,7 +208,6 @@ internal class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
             throw new InvalidOperationException("Post modification select shouldn't be called if there are zero reads");
         }
 
-        //AppendSelectCommandHeader(commandStringBuilder, readOperations);
         commandStringBuilder.Append("SELECT ");
         bool isFirst = true;
 
@@ -293,12 +231,6 @@ internal class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
                     .Append(SqlGenerationHelper.DelimitIdentifier(readOperation.ColumnName));
             }
         }
-        //commandStringBuilder
-        //    .Append("SELECT ")
-        //    .AppendJoin(
-        //        readOperations,
-        //        SqlGenerationHelper,
-        //        (sb, o, helper) => helper.DelimitIdentifier(sb, o.ColumnName));
 
         AppendFromClause(commandStringBuilder, name, schema);
         commandStringBuilder.Append(" AT(statement=>last_query_id())");
@@ -336,36 +268,12 @@ internal class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
     protected override void AppendIdentityWhereCondition(StringBuilder commandStringBuilder, IColumnModification columnModification)
     {
         commandStringBuilder.Append("1 = 1");
-
-        //SqlGenerationHelper.DelimitIdentifier(commandStringBuilder, columnModification.ColumnName);
-        //commandStringBuilder.Append(" = ");
-
-        //commandStringBuilder.Append("statement => last_query_id()");
-        //throw new NotImplementedException();
     }
 
-    //private bool hasGotHere;
     protected override void AppendRowsAffectedWhereCondition(StringBuilder commandStringBuilder, int expectedRowsAffected)
     {
         commandStringBuilder.Append("1 = 1");
     }
-
-    //protected override ResultSetMapping AppendSelectAffectedCommand(
-    //    StringBuilder commandStringBuilder,
-    //    string name,
-    //    string? schema,
-    //    IReadOnlyList<IColumnModification> readOperations,
-    //    IReadOnlyList<IColumnModification> conditionOperations,
-    //    int commandPosition)
-    //{
-    //    AppendSelectCommandHeader(commandStringBuilder, readOperations);
-    //    AppendFromClause(commandStringBuilder, name, schema);
-    //    AppendWhereAffectedClause(commandStringBuilder, conditionOperations);
-    //    commandStringBuilder.AppendLine(SqlGenerationHelper.StatementTerminator)
-    //        .AppendLine();
-
-    //    return ResultSetMapping.LastInResultSet;
-    //}
 
     protected override void AppendUpdateColumnValue(
         ISqlGenerationHelper updateSqlGeneratorHelper,

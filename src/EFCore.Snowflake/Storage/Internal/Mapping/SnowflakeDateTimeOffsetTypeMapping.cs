@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace EFCore.Snowflake.Storage.Internal.Mapping;
 
-internal class SnowflakeDateTimeOffsetTypeMapping : DateTimeOffsetTypeMapping
+public class SnowflakeDateTimeOffsetTypeMapping : DateTimeOffsetTypeMapping
 {
     public new static SnowflakeDateTimeOffsetTypeMapping Default { get; } = new(SnowflakeStoreTypeNames.DefaultTimePrecision);
 

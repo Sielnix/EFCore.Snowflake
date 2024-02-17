@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EFCore.Snowflake.Storage.Internal.Mapping;
 
-internal class SnowflakeDateOnlyTypeMapping : DateOnlyTypeMapping
+public class SnowflakeDateOnlyTypeMapping : DateOnlyTypeMapping
 {
     private const string DateOnlyFormatConst = @"'{0:yyyy\-MM\-dd}'";
 
