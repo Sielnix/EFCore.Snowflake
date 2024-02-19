@@ -271,7 +271,7 @@ WHERE
         {
             var tablesDict = tables.ToDictionary(t => GetTableId(t));
 
-            GetColumns(connection, databaseName, tablesDict, tableFilter, tableTypeFilter);
+            GetColumns(connection, databaseName, tablesDict);
             GetPrimaryKeys(connection, databaseName, tables);
             GetUniqueKeys(connection, databaseName, tablesDict);
             GetForeignKeys(connection, databaseName, tablesDict);
@@ -486,16 +486,14 @@ WHERE
     private void GetColumns(
         DbConnection connection,
         string databaseName,
-        IReadOnlyDictionary<TableId, DatabaseTable> tablesDict,
-        Func<string, string, string>? tableFilter,
-        string tableTypeFilter)
+        IReadOnlyDictionary<TableId, DatabaseTable> tablesDict)
     {
-        string fullTableFilter =
-            tableFilter is null
-                ? string.Empty
-                : $"AND {tableFilter("T.TABLE_SCHEMA", "T.TABLE_NAME")}";
+        foreach (var tablePair in tablesDict)
+        {
+            TableId tableId = tablePair.Key;
+            DatabaseTable table = tablePair.Value;
 
-        string query = $@"
+            string query = $@"
     SELECT
         C.TABLE_SCHEMA,
         C.TABLE_NAME,
@@ -514,31 +512,19 @@ WHERE
         C.IDENTITY_INCREMENT,
         C.COMMENT
     FROM INFORMATION_SCHEMA.COLUMNS C
-    INNER JOIN INFORMATION_SCHEMA.TABLES T ON C.TABLE_CATALOG = T.TABLE_CATALOG  AND C.TABLE_SCHEMA = T.TABLE_SCHEMA AND C.TABLE_NAME = T.TABLE_NAME
     WHERE
-        T.TABLE_TYPE {tableTypeFilter}
-        {fullTableFilter}
+        C.TABLE_SCHEMA = {EscapeLiteral(tableId.SchemaName)}
+        AND C.TABLE_NAME = {EscapeLiteral(tableId.TableName)}
 ";
 
-        Dictionary<ColumnId, ColumnDetailedInfo> columnsDetailedInfo = GetColumnsDetailedInfo(connection, databaseName, tablesDict);
+            Dictionary<ColumnId, ColumnDetailedInfo> columnsDetailedInfo = GetColumnsDetailedInfo(connection, databaseName, tableId);
 
-        using var command = connection.CreateCommand();
-        command.CommandText = query;
-        using var reader = command.ExecuteReader();
-        using var readerWrapper = ThroughDataTable(reader);
+            using var command = connection.CreateCommand();
+            command.CommandText = query;
+            using var reader = command.ExecuteReader();
+            using var readerWrapper = ThroughDataTable(reader);
 
-        ILookup<TableId, DbDataRecord> colsByTable = readerWrapper
-            .Cast<DbDataRecord>()
-            .ToLookup(dr => new TableId(
-                dr.GetFieldValue<string>("TABLE_SCHEMA"),
-                dr.GetFieldValue<string>("TABLE_NAME")));
-
-        foreach (var tablePair in tablesDict)
-        {
-            TableId tableId = tablePair.Key;
-            DatabaseTable table = tablePair.Value;
-
-            List<DbDataRecord> tableCols = colsByTable[tableId].ToList();
+            List<DbDataRecord> tableCols = readerWrapper.Cast<DbDataRecord>().ToList();
 
             tableCols.Sort(static (x, y) =>
                 x.GetFieldValue<long>("ORDINAL_POSITION").CompareTo(y.GetFieldValue<long>("ORDINAL_POSITION")));
@@ -573,8 +559,6 @@ WHERE
                     detailedInfo);
 
                 string? defaultValue = isSqlDefault ? null : columnDefault;
-                //string? defaultValueSql = isSqlDefault ? columnDefault : null;
-                //TODO: zmieniono dla testu Add_column_with_defaultValue_string, zweryfikować pozostałe
                 string? defaultValueSql = columnDefault;
                 string? computedColumnSql = string.IsNullOrWhiteSpace(detailedInfo.Expression) ? null : detailedInfo.Expression;
 
@@ -624,13 +608,13 @@ WHERE
             }
         }
     }
-    
+
     private Dictionary<ColumnId, ColumnDetailedInfo> GetColumnsDetailedInfo(
         DbConnection connection,
         string databaseName,
-        IReadOnlyDictionary<TableId, DatabaseTable> tablesDict)
+        TableId tableId)
     {
-        string query = $"SHOW COLUMNS IN DATABASE {_sqlGenerationHelper.DelimitIdentifier(databaseName)};";
+        string query = $"SHOW COLUMNS IN TABLE {_sqlGenerationHelper.DelimitIdentifier(databaseName)}.{_sqlGenerationHelper.DelimitIdentifier(tableId.TableName, tableId.SchemaName)};";
 
         using var command = connection.CreateCommand();
         command.CommandText = query;
@@ -641,15 +625,6 @@ WHERE
 
         foreach (DbDataRecord dataRecord in readerWrapper)
         {
-            TableId tableId = new TableId(
-                SchemaName: dataRecord.GetFieldValue<string>("schema_name"),
-                TableName: dataRecord.GetFieldValue<string>("table_name"));
-
-            if (!tablesDict.ContainsKey(tableId))
-            {
-                continue;
-            }
-
             string columnName = dataRecord.GetFieldValue<string>("column_name");
             string columnKind = dataRecord.GetFieldValue<string>("kind");
 
@@ -659,7 +634,7 @@ WHERE
                 "VIRTUAL_COLUMN" => true,
                 _ => throw new ArgumentOutOfRangeException($"Unknown column kind '{columnKind}' in column {columnName} when scaffolding {tableId.DisplayName}")
             };
-           
+
             ColumnId columnId = new(
                 TableId: tableId,
                 ColumnName: columnName);
@@ -672,7 +647,7 @@ WHERE
 
         return result;
     }
-
+    
     private DbDataReader ThroughDataTable(DbDataReader reader)
     {
         // snowflake connector doesn't implement DbDataReader enumerator
@@ -791,10 +766,6 @@ WHERE
             || dataType.StartsWith("DATE", StringComparison.OrdinalIgnoreCase))
         {
             return true;
-            //if (dbDefaultValue.TrimEnd().EndsWith("()", StringComparison.Ordinal))
-            //{
-            //    return true;
-            //}
         }
 
         return false;
@@ -916,7 +887,7 @@ WHERE
     : (s, t) => $"{s} <> 'INFORMATION_SCHEMA'";
 
     private static string EscapeLiteral(string s)
-        => $"'{s.Replace("'", "''")}'";
+        => $"'{SnowflakeStringLikeEscape.EscapeSqlLiteral(s)}'";
 
     private string? GetDatabaseCollation(DbConnection connection, string databaseName)
     {
@@ -936,7 +907,7 @@ WHERE
         }
 
         object? value = reader["value"];
-        if (value is null)
+        if (value is null or DBNull)
         {
             return null;
         }

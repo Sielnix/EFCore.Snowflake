@@ -23,6 +23,11 @@ public class Startup
 }
 ```
 
+## Feedback
+
+**Feel free to submit any feedback - bug reports or feature requests**. All feedback is welcome at [GitHub repository](https://github.com/Sielnix/EFCore.Snowflake).
+
+
 ## Key Features
 
 * Query support
@@ -46,7 +51,3 @@ public class Startup
 ## License
 
 _EntityFrameworkCore.Snowflake_ is released as open source under the [GNU Lesser General Public License v3.0 only](https://github.com/Sielnix/EFCore.Snowflake/blob/main/LICENSE).
-
-## Feedback
-
-Bug reports and contributions are welcome at [GitHub repository](https://github.com/Sielnix/EFCore.Snowflake).
