@@ -1,13 +1,10 @@
 <Project>
   <PropertyGroup>
-    <VersionPrefix>8.0.2-preview.1</VersionPrefix>
+    <VersionPrefix>8.0.2</VersionPrefix>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest</AnalysisLevel>
-    <!-- <NoWarn>NU5105</NoWarn> -->
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
-    <!-- <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)Npgsql.snk</AssemblyOriginatorKeyFile> -->
-    <!-- <SignAssembly>true</SignAssembly> -->
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <ImplicitUsings>true</ImplicitUsings>
 
