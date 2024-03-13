@@ -1,4 +1,4 @@
-﻿## About
+## About
 
 _EntityFrameworkCore.Snowflake_ is the Entity Framework Core (EF Core) provider for [Snowflake](https://www.snowflake.com).
 
@@ -22,6 +22,10 @@ public class Startup
     }
 }
 ```
+
+## Scaffolding
+
+If you wish to create model from existing Snowflake database, then follow [this](https://learn.microsoft.com/en-us/ef/core/cli/dotnet#dotnet-ef-dbcontext-scaffold) steps. Provider name is `EFCore.Snowflake`.  Ensure you have ef tools installed (`dotnet tool install --global dotnet-ef`).
 
 ## Feedback
 
