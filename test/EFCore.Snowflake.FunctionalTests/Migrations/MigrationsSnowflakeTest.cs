@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Scaffolding;
+using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Snowflake.Data.Client;
@@ -21,6 +22,51 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
     }
 
     protected override string NonDefaultCollation => "de-ci-pi";
+
+    [ConditionalFact]
+    public virtual Task Add_column_with_defaultValue_clr()
+        => Test(
+            builder => builder.Entity("PeopleClr").Property<int>("Id"),
+            builder => { },
+            builder =>
+            {
+                builder.Entity("PeopleClr").Property<bool>("IsAlive")
+                    .IsRequired()
+                    .HasDefaultValue(true);
+
+                builder.Entity("PeopleClr").Property<long>("Age")
+                    .IsRequired()
+                    .HasDefaultValue(0);
+
+                builder.Entity("PeopleClr").Property<decimal>("BankAccount")
+                    .IsRequired()
+                    .HasDefaultValue(1.1m);
+
+                builder.Entity("PeopleClr").Property<double>("Height")
+                    .IsRequired()
+                    .HasDefaultValue(42.1);
+            },
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                Assert.Equal(5, table.Columns.Count);
+                DatabaseColumn isAliveColumn = Assert.Single(table.Columns, c => c.Name == "IsAlive");
+                Assert.False(isAliveColumn.IsNullable);
+                Assert.Equal("TRUE", isAliveColumn.DefaultValueSql);
+                Assert.Equal(true, isAliveColumn.DefaultValue);
+
+                DatabaseColumn ageColumn = Assert.Single(table.Columns, c => c.Name == "Age");
+                Assert.False(ageColumn.IsNullable);
+                Assert.Equal(0L, ageColumn.DefaultValue);
+
+                DatabaseColumn bankAccountColumn = Assert.Single(table.Columns, c => c.Name == "BankAccount");
+                Assert.False(bankAccountColumn.IsNullable);
+                Assert.Equal(1.1m, bankAccountColumn.DefaultValue);
+
+                DatabaseColumn heightColumn = Assert.Single(table.Columns, c => c.Name == "Height");
+                Assert.False(heightColumn.IsNullable);
+                Assert.Equal(42.1, heightColumn.DefaultValue);
+            });
 
     public override async Task Add_check_constraint_with_name()
     {

@@ -201,7 +201,7 @@ WHERE {schemaFilter("SEQUENCE_SCHEMA")}
 
     private long? ToLongOrNull(string numberInString)
     {
-        BigInteger bigInt = BigInteger.Parse(numberInString);
+        BigInteger bigInt = BigInteger.Parse(numberInString, CultureInfo.InvariantCulture);
         BigInteger maxLong = new BigInteger(long.MaxValue);
         BigInteger minLong = new BigInteger(long.MinValue);
 
@@ -558,7 +558,7 @@ WHERE
                     dateTimePrecision,
                     detailedInfo);
 
-                string? defaultValue = isSqlDefault ? null : columnDefault;
+                object? defaultValue = isSqlDefault ? null : ParseClrDefault(dataType, numericPrecision, numericScale, columnDefault);
                 string? defaultValueSql = columnDefault;
                 string? computedColumnSql = string.IsNullOrWhiteSpace(detailedInfo.Expression) ? null : detailedInfo.Expression;
 
@@ -607,6 +607,96 @@ WHERE
                     computedColumnSql);
             }
         }
+    }
+
+    private object? ParseClrDefault(string dataTypeName, long? numericPrecision, long? numericScale, string? defaultValueSql)
+    {
+        if (defaultValueSql is null)
+        {
+            return null;
+        }
+
+        if (dataTypeName == SnowflakeStoreTypeNames.Varchar)
+        {
+            return defaultValueSql;
+        }
+
+        if (dataTypeName == SnowflakeStoreTypeNames.Boolean)
+        {
+            if (string.Equals(defaultValueSql, "TRUE", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (string.Equals(defaultValueSql, "FALSE", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return null;
+        }
+
+        if (dataTypeName == SnowflakeStoreTypeNames.Number)
+        {
+            if (!numericPrecision.HasValue || !numericScale.HasValue)
+            {
+                throw new ArgumentException(
+                    $"For '{SnowflakeStoreTypeNames.Number}' data type {nameof(numericPrecision)} and {nameof(numericScale)} must be defined");
+            }
+
+            if (numericScale.Value == 0)
+            {
+                SignedIntegerType safeType = SnowflakeStoreTypeNames.GetSafeIntegerType((int)numericPrecision.Value);
+                switch (safeType)
+                {
+                    case SignedIntegerType.Byte:
+                        if (byte.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out byte parsedByte))
+                        {
+                            return parsedByte;
+                        }
+
+                        return null;
+                    case SignedIntegerType.Short:
+                        if (short.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out short parsedShort))
+                        {
+                            return parsedShort;
+                        }
+
+                        return null;
+                    case SignedIntegerType.Int:
+                        if (int.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out int parsedInt))
+                        {
+                            return parsedInt;
+                        }
+
+                        return null;
+                    case SignedIntegerType.Long:
+                        if (long.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out long parsedLong))
+                        {
+                            return parsedLong;
+                        }
+
+                        return null;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(safeType), safeType, null);
+                }
+            }
+
+            if (decimal.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out decimal decimalResult))
+            {
+                return decimalResult;
+            }
+        }
+
+        if (dataTypeName == SnowflakeStoreTypeNames.Float)
+        {
+            if (double.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out double parsedDouble))
+            {
+                return parsedDouble;
+            }
+        }
+
+        return null;
     }
 
     private Dictionary<ColumnId, ColumnDetailedInfo> GetColumnsDetailedInfo(

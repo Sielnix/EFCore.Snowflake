@@ -14,7 +14,7 @@ public class SnowflakeULongTypeMapping : ULongTypeMapping
                     typeof(ulong),
                     converter: new ValueConverterImpl()
                 ),
-                storeType: "NUMBER(20, 0)",
+                storeType: "NUMBER(20,0)",
                 dbType: System.Data.DbType.Int64))
     {
     }

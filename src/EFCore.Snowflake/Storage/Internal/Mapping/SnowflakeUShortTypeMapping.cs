@@ -14,7 +14,7 @@ public class SnowflakeUShortTypeMapping : UShortTypeMapping
                     typeof(ushort),
                     converter: new ValueConverterImpl()
                 ),
-                storeType: "NUMBER(5, 0)",
+                storeType: "NUMBER(5,0)",
                 dbType: System.Data.DbType.Int64))
     {
     }

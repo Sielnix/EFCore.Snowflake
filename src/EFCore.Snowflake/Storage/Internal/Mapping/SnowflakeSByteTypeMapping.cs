@@ -14,7 +14,7 @@ public class SnowflakeSByteTypeMapping : SByteTypeMapping
                     typeof(sbyte),
                     converter: new ValueConverterImpl()
                 ),
-                storeType: "NUMBER(3, 0)",
+                storeType: "NUMBER(3,0)",
                 dbType: System.Data.DbType.Int64))
     {
     }

@@ -666,6 +666,38 @@ public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabase
             },
             @"DROP TABLE ""DefaultValues""");
 
+    [Fact]
+    public void Deserializes_clrs_defaults()
+        => Test(
+            """
+            CREATE TABLE "BooleanDefault" (
+                "Id" int,
+                FOO BOOLEAN DEFAULT FALSE,
+                SHORT NUMBER(4,0) DEFAULT 12,
+                INT NUMBER(7,0) DEFAULT -123,
+                DECIMAL NUMBER(16,2) DEFAULT 123.45,
+                FLOATING DOUBLE DEFAULT -5.5
+            )
+            """,
+            Enumerable.Empty<string>(),
+            Enumerable.Empty<string>(),
+            dbModel =>
+            {
+                IList<DatabaseColumn> columns = dbModel.Tables.Single().Columns;
+                DatabaseColumn foo = columns.Single(c => c.Name == "FOO");
+                DatabaseColumn shortCol = columns.Single(c => c.Name == "SHORT");
+                DatabaseColumn intCol = columns.Single(c => c.Name == "INT");
+                DatabaseColumn decimalCol = columns.Single(c => c.Name == "DECIMAL");
+                DatabaseColumn doubleCol = columns.Single(c => c.Name == "FLOATING");
+                Assert.Equal("FALSE", foo.DefaultValueSql);
+                Assert.Equal(false, foo.DefaultValue);
+
+                Assert.Equal((short)12, shortCol.DefaultValue);
+                Assert.Equal(-123, intCol.DefaultValue);
+                Assert.Equal(123.45m, decimalCol.DefaultValue);
+                Assert.Equal(-5.5, doubleCol.DefaultValue);
+            },
+            @"DROP TABLE ""BooleanDefault""");
 
     [Fact]
     public void Computed_values_are_stored()

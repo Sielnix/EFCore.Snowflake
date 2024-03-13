@@ -14,7 +14,7 @@ public class SnowflakeUIntTypeMapping : UIntTypeMapping
                     typeof(uint),
                     converter: new ValueConverterImpl()
                 ),
-                storeType: "NUMBER(10, 0)",
+                storeType: "NUMBER(10,0)",
                 dbType: System.Data.DbType.Int64))
     {
     }
