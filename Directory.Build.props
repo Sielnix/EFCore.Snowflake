@@ -1,4 +1,5 @@
 <Project>
+  <Import Project="Development.props" Condition="Exists('Development.props')" />
   <PropertyGroup>
     <VersionPrefix>8.0.3</VersionPrefix>
     <LangVersion>latest</LangVersion>

@@ -21,7 +21,7 @@ public class SnowflakeTimeOnlyTypeMapping : TimeOnlyTypeMapping
                     jsonValueReaderWriter: JsonTimeOnlyReaderWriter.Instance
                 ),
                 storeType: SnowflakeStoreTypeNames.GetTimeType(SnowflakeStoreTypeNames.Time, precision),
-                dbType: System.Data.DbType.DateTime,
+                dbType: System.Data.DbType.Time,
                 size: precision))
     {
     }

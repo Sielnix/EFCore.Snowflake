@@ -6,7 +6,6 @@ using EFCore.Snowflake.Metadata.Conventions;
 using EFCore.Snowflake.Metadata.Internal;
 using EFCore.Snowflake.Migrations;
 using EFCore.Snowflake.Migrations.Internal;
-using EFCore.Snowflake.Query;
 using EFCore.Snowflake.Query.ExpressionTranslators;
 using EFCore.Snowflake.Query.Internal;
 using EFCore.Snowflake.Storage;

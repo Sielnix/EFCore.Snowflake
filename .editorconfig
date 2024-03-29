@@ -16,5 +16,5 @@ csharp_style_namespace_declarations = file_scoped:warning
 [*.{cs,vb}]
 dotnet_diagnostic.EF1001.severity = none # usage of entity framework internal api
 
-[*.{yml,yaml}]
+[*.{yml,yaml,csproj,props}]
 indent_size = 2

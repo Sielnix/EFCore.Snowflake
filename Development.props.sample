@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <!--
+      For better debugging experience:
+	  1. Fill path below to efcore repository
+	  2. Checkout used version of efcore
+		git checkout v8.0.3
+	  3. Run command bellow in powershell core in efcore repository:
+		.\build.cmd "/p:AssemblyVersion=7.0.12"
+	  4. Rename this file to "Development.props"
+      
+    -->
+    <LocalEFCoreRepository>C:\Repositories\efcore</LocalEFCoreRepository>
+  </PropertyGroup>
+</Project>
