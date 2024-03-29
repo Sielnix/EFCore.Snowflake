@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EFCore.Snowflake.Storage.Internal.Mapping;
@@ -12,7 +13,8 @@ public class SnowflakeUShortTypeMapping : UShortTypeMapping
             new RelationalTypeMappingParameters(
                 new CoreTypeMappingParameters(
                     typeof(ushort),
-                    converter: new ValueConverterImpl()
+                    converter: new ValueConverterImpl(),
+                    jsonValueReaderWriter: JsonUInt16ReaderWriter.Instance
                 ),
                 storeType: "NUMBER(5,0)",
                 dbType: System.Data.DbType.Int64))

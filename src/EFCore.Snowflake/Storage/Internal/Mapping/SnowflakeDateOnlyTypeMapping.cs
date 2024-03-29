@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EFCore.Snowflake.Storage.Internal.Mapping;
@@ -14,7 +15,8 @@ public class SnowflakeDateOnlyTypeMapping : DateOnlyTypeMapping
             new RelationalTypeMappingParameters(
                 new CoreTypeMappingParameters(
                     typeof(DateOnly),
-                    converter: new ValueConverterImpl()
+                    converter: new ValueConverterImpl(),
+                    jsonValueReaderWriter: JsonDateOnlyReaderWriter.Instance
                 ),
                 storeType: SnowflakeStoreTypeNames.Date,
                 dbType: System.Data.DbType.DateTime))

@@ -519,6 +519,42 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
         await TestImpl();
     }
 
+    [ConditionalFact]
+    public virtual async Task Create_table_with_array_column()
+        => await Test(
+            builder => { },
+            builder => builder.Entity(
+                "Arrays",
+                e =>
+                {
+                    e.Property<int>("Id");
+                    e.Property<string[]>("StringArray").IsRequired();
+                    e.Property<string[]?>("StringArrayNullable");
+                    e.Property<string?[]?>("StringArrayItemsNullable");
+                    e.Property<decimal[]>("DecimalArray").IsRequired();
+                }),
+            model =>
+            {
+                DatabaseTable table = Assert.Single(model.Tables);
+                Assert.Equal("Arrays", table.Name);
+
+                DatabaseColumn stringArray = Assert.Single(table.Columns, c => c.Name == "StringArray");
+                Assert.Equal("ARRAY", stringArray.StoreType);
+                Assert.False(stringArray.IsNullable);
+
+                DatabaseColumn stringArrayNullable = Assert.Single(table.Columns, c => c.Name == "StringArrayNullable");
+                Assert.Equal("ARRAY", stringArrayNullable.StoreType);
+                Assert.True(stringArrayNullable.IsNullable);
+
+                DatabaseColumn stringArrayItemsNullable = Assert.Single(table.Columns, c => c.Name == "StringArrayItemsNullable");
+                Assert.Equal("ARRAY", stringArrayItemsNullable.StoreType);
+                Assert.True(stringArrayItemsNullable.IsNullable);
+
+                DatabaseColumn decimalArray = Assert.Single(table.Columns, c => c.Name == "DecimalArray");
+                Assert.Equal("ARRAY", decimalArray.StoreType);
+                Assert.False(decimalArray.IsNullable);
+            });
+
     public override async Task SqlOperation()
     {
         await Test(

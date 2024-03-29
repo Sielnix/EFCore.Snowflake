@@ -27,6 +27,49 @@ public class Startup
 
 If you wish to create model from existing Snowflake database, then follow [this](https://learn.microsoft.com/en-us/ef/core/cli/dotnet#dotnet-ef-dbcontext-scaffold) steps. Provider name is `EFCore.Snowflake`.  Ensure you have ef tools installed (`dotnet tool install --global dotnet-ef`).
 
+## Type mapping
+
+- All basic C# types are supported.
+- Spatial types are not supported
+- When scaffolding Variant, Array or Object column type - it is mapped as C# `string` type with json data
+- Snowflake Array column can be mapped to C# arrays. Example:
+```csharp
+public class SampleModel
+{
+    public long Id { get; set; }
+    public string[]? ArrayColumn { get; set; }
+}
+
+public class SnowflakeDbContext : DbContext
+{
+    public DbSet<SampleModel> Models { get; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseSnowflake();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.HasDefaultSchema("PUBLIC");
+
+        modelBuilder.Entity<SampleModel>(entity =>
+        {
+            entity.ToTable("SAMPLE_MODEL_", "PUBLIC");
+
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .HasColumnType("NUMBER(38,0)")
+                .HasColumnName("ID");
+
+            entity.Property(e => e.ArrayColumn)
+                .HasColumnType("ARRAY")
+                .HasColumnName("ARRAY_COLUMN");;
+        });
+    }
+}
+```
+
+
 ## Feedback
 
 **Feel free to submit any feedback - bug reports or feature requests**. All feedback is welcome at [GitHub repository](https://github.com/Sielnix/EFCore.Snowflake).

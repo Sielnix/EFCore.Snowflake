@@ -1,5 +1,6 @@
 using EFCore.Snowflake.Storage.Internal.Mapping;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EFCore.Snowflake.Storage.Internal;
 
@@ -107,7 +108,28 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
 
         return result;
     }
-    
+
+    protected override RelationalTypeMapping? FindCollectionMapping(
+        RelationalTypeMappingInfo info,
+        Type modelType,
+        Type? providerType,
+        CoreTypeMapping? elementMapping)
+    {
+        return TryFindJsonCollectionMapping(
+            info.CoreTypeMappingInfo, modelType, providerType, ref elementMapping, out var comparer, out var collectionReaderWriter)
+            // only change against original one - we use SnowflakeArrayTypeMapping directly instead of searching for string type mapping
+            ? (RelationalTypeMapping)SnowflakeArrayTypeMapping.Default
+                .WithComposedConverter(
+                    (ValueConverter)Activator.CreateInstance(
+                        typeof(CollectionToJsonStringConverter<>).MakeGenericType(
+                            modelType.TryGetElementType(typeof(IEnumerable<>))!), collectionReaderWriter!)!,
+                    comparer,
+                    comparer,
+                    elementMapping,
+                    collectionReaderWriter)
+            : null;
+    }
+
     private RelationalTypeMapping? FindRawMapping(in RelationalTypeMappingInfo mappingInfo)
     {
         Type? clrType = mappingInfo.ClrType;

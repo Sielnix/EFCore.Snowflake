@@ -8,11 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Shared\SharedTypeExtensions.cs" Link="Utilities\SharedTypeExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="..\..\icon.png" Link="icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(LocalEFCoreRepository)' == ''">

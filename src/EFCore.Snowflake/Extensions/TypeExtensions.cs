@@ -1,8 +1,6 @@
 namespace EFCore.Snowflake.Extensions;
 internal static class TypeExtensions
 {
-    public static Type UnwrapNullableType(this Type type) => Nullable.GetUnderlyingType(type) ?? type;
-
     public static bool IsInteger(this Type type)
     {
         type = type.UnwrapNullableType();
@@ -16,4 +14,10 @@ internal static class TypeExtensions
                || type == typeof(ushort)
                || type == typeof(sbyte);
     }
+
+    internal static bool IsGenericList(this Type? type)
+        => type is not null && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
+
+    internal static bool IsArrayOrGenericList(this Type type)
+        => type.IsArray || type.IsGenericList();
 }

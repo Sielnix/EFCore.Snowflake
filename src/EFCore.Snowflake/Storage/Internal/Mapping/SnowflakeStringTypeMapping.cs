@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace EFCore.Snowflake.Storage.Internal.Mapping;
 
@@ -15,7 +16,8 @@ public class SnowflakeStringTypeMapping : StringTypeMapping
                 new CoreTypeMappingParameters(
                     typeof(string),
                     comparer: useKeyComparison ? CaseInsensitiveValueComparer : null,
-                    keyComparer: useKeyComparison ? CaseInsensitiveValueComparer : null),
+                    keyComparer: useKeyComparison ? CaseInsensitiveValueComparer : null,
+                    jsonValueReaderWriter: JsonStringReaderWriter.Instance),
                 storeTypeName ?? SnowflakeStoreTypeNames.GetVarcharType(size),
                 StoreTypePostfix.Size,
                 System.Data.DbType.String,
