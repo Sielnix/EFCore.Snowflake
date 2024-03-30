@@ -212,6 +212,7 @@ public class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
         bool isFirst = true;
 
         List<IColumnModification> readNonIdentity = new();
+        bool hasAnyIdentity = false;
         foreach (var readOperation in readOperations)
         {
             if (isFirst)
@@ -225,6 +226,7 @@ public class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
 
             if (IsIdentityOperation(readOperation))
             {
+                hasAnyIdentity = true;
                 commandStringBuilder
                     .Append("MAX(")
                     .Append(SqlGenerationHelper.DelimitIdentifier(readOperation.ColumnName))
@@ -266,23 +268,26 @@ public class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
             AppendWhereCondition(commandStringBuilder, columnModification, useOriginalValue: false);
         }
 
-        isFirst = true;
-        foreach (IColumnModification readNonIdentityColumn in readNonIdentity)
+        if (hasAnyIdentity)
         {
-            if (isFirst)
+            isFirst = true;
+            foreach (IColumnModification readNonIdentityColumn in readNonIdentity)
             {
-                commandStringBuilder
-                    .AppendLine()
-                    .Append("GROUP BY ");
-                isFirst = false;
-            }
-            else
-            {
-                commandStringBuilder.Append(", ");
-            }
+                if (isFirst)
+                {
+                    commandStringBuilder
+                        .AppendLine()
+                        .Append("GROUP BY ");
+                    isFirst = false;
+                }
+                else
+                {
+                    commandStringBuilder.Append(", ");
+                }
 
-            commandStringBuilder
-                .Append(SqlGenerationHelper.DelimitIdentifier(readNonIdentityColumn.ColumnName));
+                commandStringBuilder
+                    .Append(SqlGenerationHelper.DelimitIdentifier(readNonIdentityColumn.ColumnName));
+            }
         }
 
         commandStringBuilder
@@ -411,7 +416,7 @@ public class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
         IColumnModification columnModification,
         bool useOriginalValue)
     {
-        // COPY&PASTE from base method
+        // mostly COPY&PASTE from base method
         SqlGenerationHelper.DelimitIdentifier(commandStringBuilder, columnModification.ColumnName);
 
         var parameterValue = useOriginalValue
@@ -424,18 +429,22 @@ public class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
         }
         else
         {
+            // CHANGE
+            string? parameterName = useOriginalValue
+                ? columnModification.OriginalParameterName
+                : columnModification.ParameterName;
+
             commandStringBuilder.Append(" = ");
-            if (!columnModification.UseParameter)
+            if (!columnModification.UseParameter || parameterName == null)
             {
                 AppendSqlLiteral(commandStringBuilder, columnModification, null, null);
             }
             else
             {
                 SqlGenerationHelper.GenerateParameterNamePlaceholder(
-                    commandStringBuilder, useOriginalValue
-                        ? columnModification.OriginalParameterName!
-                        : columnModification.ParameterName!,
-                    // ONLY CHANGE
+                    commandStringBuilder,
+                    parameterName,
+                    // CHANGE
                     columnModification.TypeMapping);
             }
         }
