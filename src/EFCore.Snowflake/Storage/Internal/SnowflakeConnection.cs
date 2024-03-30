@@ -85,11 +85,14 @@ public class SnowflakeConnection : RelationalConnection, ISnowflakeConnection
         return new SnowflakeDbConnection(GetValidatedConnectionString());
     }
 
+    protected override string GetValidatedConnectionString()
+    {
+        return base.GetValidatedConnectionString() ?? string.Empty;
+    }
+
     protected override void OpenDbConnection(bool errorsExpected)
     {
         base.OpenDbConnection(errorsExpected);
-
-        //ExecuteSql(GetUseDatabaseQuery());
 
         if (
             DatabaseInConnectionString != null
@@ -131,8 +134,6 @@ public class SnowflakeConnection : RelationalConnection, ISnowflakeConnection
     {
         await base.OpenDbConnectionAsync(errorsExpected, cancellationToken).ConfigureAwait(false);
 
-        //await ExecuteSqlAsync(GetUseDatabaseQuery(), cancellationToken).ConfigureAwait(false);
-
         if (
             DatabaseInConnectionString != null
             && SchemaInConnectionString != null
@@ -140,16 +141,8 @@ public class SnowflakeConnection : RelationalConnection, ISnowflakeConnection
         {
             await ExecuteSqlAsync(GetUseSchemaQuery(), cancellationToken).ConfigureAwait(false);
         }
-        //
     }
-
-    private string? GetUseDatabaseQuery()
-    {
-        return null;
-        //string? database = DatabaseInConnectionString;
-        //return database is not null ? $"USE DATABASE {_sqlGenerationHelper.DelimitIdentifier(DatabaseInConnectionString)}" : null;
-    }
-
+    
     private string GetUseSchemaQuery()
     {
         return $"USE SCHEMA {_sqlGenerationHelper.DelimitIdentifier(SchemaInConnectionString!)}";
