@@ -211,7 +211,8 @@ public class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
         commandStringBuilder.Append("SELECT ");
         bool isFirst = true;
 
-        foreach (var readOperation in readOperations.Where(c => c.IsRead))
+        List<IColumnModification> readNonIdentity = new();
+        foreach (var readOperation in readOperations)
         {
             if (isFirst)
             {
@@ -229,6 +230,13 @@ public class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
                     .Append(SqlGenerationHelper.DelimitIdentifier(readOperation.ColumnName))
                     .Append(") AS ")
                     .Append(SqlGenerationHelper.DelimitIdentifier(readOperation.ColumnName));
+            }
+            else
+            {
+                commandStringBuilder
+                    .Append(SqlGenerationHelper.DelimitIdentifier(readOperation.ColumnName));
+
+                readNonIdentity.Add(readOperation);
             }
         }
 
@@ -256,6 +264,25 @@ public class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
             }
 
             AppendWhereCondition(commandStringBuilder, columnModification, useOriginalValue: false);
+        }
+
+        isFirst = true;
+        foreach (IColumnModification readNonIdentityColumn in readNonIdentity)
+        {
+            if (isFirst)
+            {
+                commandStringBuilder
+                    .AppendLine()
+                    .Append("GROUP BY ");
+                isFirst = false;
+            }
+            else
+            {
+                commandStringBuilder.Append(", ");
+            }
+
+            commandStringBuilder
+                .Append(SqlGenerationHelper.DelimitIdentifier(readNonIdentityColumn.ColumnName));
         }
 
         commandStringBuilder

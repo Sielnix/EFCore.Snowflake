@@ -20,6 +20,10 @@ public class SnowflakeTestStore : RelationalTestStore
 
     public static SnowflakeTestStore Create(string name) => new(name, shared: false);
 
+    public static SnowflakeTestStore CreateInitialized(string name)
+        => new SnowflakeTestStore(name, shared: false)
+            .InitializeSnowflake(null, null, null);
+
     public static SnowflakeTestStore GetOrCreate(string name) => new(name, shared: true);
 
     public int ExecuteNonQuery(string sql, params object[] parameters)
@@ -39,6 +43,12 @@ public class SnowflakeTestStore : RelationalTestStore
 
     private static T? ExecuteScalar<T>(DbConnection connection, string sql, params object[] parameters)
         => Execute(connection, command => (T?)command.ExecuteScalar(), sql, false);
+
+    public SnowflakeTestStore InitializeSnowflake(
+        IServiceProvider? serviceProvider,
+        Func<DbContext>? createContext,
+        Action<DbContext>? seed)
+        => (SnowflakeTestStore)Initialize(serviceProvider, createContext, seed);
 
     public static T Execute<T>(
         DbConnection connection,
