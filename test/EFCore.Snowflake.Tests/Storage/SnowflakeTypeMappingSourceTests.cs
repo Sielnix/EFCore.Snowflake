@@ -51,10 +51,10 @@ public class SnowflakeTypeMappingSourceTests
     }
 
     [Theory]
-    [InlineData("TIME(6)", "'14:05:06.213456'")]
-    [InlineData("TIME(0)", "'14:05:06'")]
-    [InlineData("DATE", "'2024-01-23'")]
-    [InlineData("TIMESTAMP_LTZ(9)", "'2024-01-23 14:05:06.2134560'")]
+    [InlineData("TIME(6)", "'14:05:06.213456'::TIME(6)")]
+    [InlineData("TIME(0)", "'14:05:06'::TIME(0)")]
+    [InlineData("DATE", "'2024-01-23'::DATE")]
+    [InlineData("TIMESTAMP_LTZ(9)", "'2024-01-23 14:05:06.2134560'::TIMESTAMP_LTZ(9)")]
     public void DateTime_creates_correct_sql_literals(string storeTypeName, string expectedResult)
     {
         RelationalTypeMapping? mapping = CreateTypeMappingSource().FindMapping(typeof(DateTime), storeTypeName);

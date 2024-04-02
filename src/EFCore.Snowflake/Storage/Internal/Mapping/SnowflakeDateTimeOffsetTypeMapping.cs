@@ -50,6 +50,6 @@ public class SnowflakeDateTimeOffsetTypeMapping : DateTimeOffsetTypeMapping
             + (precision == 0 ? string.Empty : new string('f', precision))
             + "zzz";
 
-        return "'" + offset.ToString(formatString, CultureInfo.InvariantCulture) + "'";
+        return "'" + offset.ToString(formatString, CultureInfo.InvariantCulture) + "'::" + StoreType;
     }
 }

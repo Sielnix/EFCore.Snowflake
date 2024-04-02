@@ -65,6 +65,6 @@ public class SnowflakeDateTimeTypeMapping : DateTimeTypeMapping
             format = format + "." + new string('f', precision.Value);
         }
 
-        return "'" + val.ToString(format, CultureInfo.InvariantCulture) + "'";
+        return "'" + val.ToString(format, CultureInfo.InvariantCulture) + "'::" + StoreType;
     }
 }
