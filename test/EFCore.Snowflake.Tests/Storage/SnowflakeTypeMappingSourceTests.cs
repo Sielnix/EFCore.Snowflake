@@ -67,8 +67,8 @@ public class SnowflakeTypeMappingSourceTests
     }
 
     [Theory]
-    [InlineData("TIMESTAMP_TZ(9)", "'2024-01-23 14:05:06.2134560+02:00'")]
-    [InlineData("TIMESTAMP_TZ(3)", "'2024-01-23 14:05:06.213+02:00'")]
+    [InlineData("TIMESTAMP_TZ(9)", "'2024-01-23 14:05:06.2134560+02:00'::TIMESTAMP_TZ(9)")]
+    [InlineData("TIMESTAMP_TZ(3)", "'2024-01-23 14:05:06.213+02:00'::TIMESTAMP_TZ(3)")]
     public void DateTimeOffset_creates_correct_sql_literals(string storeTypeName, string expectedResult)
     {
         RelationalTypeMapping? mapping = CreateTypeMappingSource().FindMapping(typeof(DateTimeOffset), storeTypeName);
