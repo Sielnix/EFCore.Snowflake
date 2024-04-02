@@ -8,6 +8,24 @@ namespace EFCore.Snowflake.FunctionalTests;
 
 public class DefaultValuesTest : IDisposable
 {
+    private const string DefaultDescription = "Best Chips";
+    private const string CustomDescription = "Probably Best Chips";
+
+    private const long DefaultAmount = 150;
+    private const long CustomAmount = 200;
+
+    private const decimal DefaultPrice = 12.5m;
+    private const decimal CustomPrice = 15.8m;
+
+    private const double DefaultSize = 8.8;
+    private const double CustomSize = 9.9;
+
+    private static readonly DateTime DefaultDate = new(2035, 9, 25);
+    private static readonly DateTime CustomDate = new(2111, 1, 11);
+    
+    private static readonly DateTimeOffset DefaultDateOffset = new(DefaultDate);
+    private static readonly DateTimeOffset CustomDateOffset = new(CustomDate);
+
     private readonly IServiceProvider _serviceProvider = new ServiceCollection()
         .AddEntityFrameworkSnowflake()
         .BuildServiceProvider(validateScopes: true);
@@ -25,12 +43,6 @@ public class DefaultValuesTest : IDisposable
     [ConditionalFact]
     public void Can_use_Snowflake_default_values()
     {
-        DateTime defaultDate = new DateTime(2035, 9, 25);
-        DateTime customDate = new DateTime(2111, 1, 11);
-
-        DateTimeOffset defaultDateOffset = new DateTimeOffset(defaultDate);
-        DateTimeOffset customDateOffset = new DateTimeOffset(customDate);
-        
         using (var context = new ChipsContext(_serviceProvider, TestStore.Name))
         {
             context.Database.EnsureCreatedResiliently();
@@ -43,15 +55,32 @@ public class DefaultValuesTest : IDisposable
             var honeyDijon = context.Add(
                 new KettleChips { Name = "Honey Dijon" }).Entity;
             var buffaloBleu = context.Add(
-                new KettleChips { Name = "Buffalo Bleu", BestBuyDate = customDate, BestBuyDateOffset = customDateOffset}).Entity;
+                new KettleChips
+                {
+                    Name = "Buffalo Bleu",
+                    BestBuyDate = CustomDate,
+                    BestBuyDateOffset = CustomDateOffset,
+                    Amount = CustomAmount,
+                    Price = CustomPrice,
+                    Size = CustomSize,
+                    Description = CustomDescription
+                }).Entity;
 
             context.SaveChanges();
 
-            Assert.Equal(defaultDate, honeyDijon.BestBuyDate);
-            Assert.Equal(customDate, buffaloBleu.BestBuyDate);
+            Assert.Equal(DefaultDate, honeyDijon.BestBuyDate);
+            Assert.Equal(DefaultDateOffset, honeyDijon.BestBuyDateOffset);
+            Assert.Equal(DefaultAmount, honeyDijon.Amount);
+            Assert.Equal(DefaultPrice, honeyDijon.Price);
+            Assert.Equal(DefaultSize, honeyDijon.Size);
+            Assert.Equal(DefaultDescription, honeyDijon.Description);
 
-            Assert.Equal(defaultDateOffset, honeyDijon.BestBuyDateOffset);
-            Assert.Equal(customDateOffset, buffaloBleu.BestBuyDateOffset);
+            Assert.Equal(CustomDate, buffaloBleu.BestBuyDate);
+            Assert.Equal(CustomDateOffset, buffaloBleu.BestBuyDateOffset);
+            Assert.Equal(CustomAmount, buffaloBleu.Amount);
+            Assert.Equal(CustomPrice, buffaloBleu.Price);
+            Assert.Equal(CustomSize, buffaloBleu.Size);
+            Assert.Equal(CustomDescription, buffaloBleu.Description);
         }
 
         using (var context = new ChipsContext(_serviceProvider, TestStore.Name))
@@ -59,11 +88,19 @@ public class DefaultValuesTest : IDisposable
             KettleChips fetchedDefault = context.Chips.Single(c => c.Name == "Honey Dijon");
             KettleChips fetchedCustom = context.Chips.Single(c => c.Name == "Buffalo Bleu");
 
-            Assert.Equal(defaultDate, fetchedDefault.BestBuyDate);
-            Assert.Equal(customDate, fetchedCustom.BestBuyDate);
+            Assert.Equal(DefaultDate, fetchedDefault.BestBuyDate);
+            Assert.Equal(DefaultDateOffset, fetchedDefault.BestBuyDateOffset);
+            Assert.Equal(DefaultAmount, fetchedDefault.Amount);
+            Assert.Equal(DefaultPrice, fetchedDefault.Price);
+            Assert.Equal(DefaultSize, fetchedDefault.Size);
+            Assert.Equal(DefaultDescription, fetchedDefault.Description);
 
-            Assert.Equal(defaultDateOffset, fetchedDefault.BestBuyDateOffset);
-            Assert.Equal(customDateOffset, fetchedCustom.BestBuyDateOffset);
+            Assert.Equal(CustomDate, fetchedCustom.BestBuyDate);
+            Assert.Equal(CustomDateOffset, fetchedCustom.BestBuyDateOffset);
+            Assert.Equal(CustomAmount, fetchedCustom.Amount);
+            Assert.Equal(CustomPrice, fetchedCustom.Price);
+            Assert.Equal(CustomSize, fetchedCustom.Size);
+            Assert.Equal(CustomDescription, fetchedCustom.Description);
         }
     }
 
@@ -92,15 +129,31 @@ public class DefaultValuesTest : IDisposable
                 {
                     b.Property(e => e.BestBuyDate)
                         .ValueGeneratedOnAdd()
-                        .HasDefaultValue(new DateTime(2035, 9, 25));
+                        .HasDefaultValue(DefaultDate);
 
                     b.Property(e => e.BestBuyDateOffset)
                         .ValueGeneratedOnAdd()
-                        .HasDefaultValue(new DateTimeOffset(new DateTime(2035, 9, 25)));
+                        .HasDefaultValue(DefaultDateOffset);
+
+                    b.Property(e => e.Amount)
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValue(DefaultAmount);
+
+                    b.Property(e => e.Price)
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValue(DefaultPrice);
+
+                    b.Property(e => e.Size)
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValue(DefaultSize);
 
                     b.Property(e => e.ChipperId)
                         .IsRequired()
                         .HasDefaultValue("Default");
+
+                    b.Property(e => e.Description)
+                        .IsRequired()
+                        .HasDefaultValue(DefaultDescription);
                 });
     }
 
@@ -110,6 +163,10 @@ public class DefaultValuesTest : IDisposable
         public string Name { get; set; } = null!;
         public DateTime BestBuyDate { get; set; }
         public DateTimeOffset BestBuyDateOffset { get; set; }
+        public long Amount { get; set; }
+        public decimal Price { get; set; }
+        public double Size { get; set; }
+        public string Description { get; set; } = null!;
         public string ChipperId { get; set; } = null!;
 
         public Chipper Manufacturer { get; set; } = null!;
