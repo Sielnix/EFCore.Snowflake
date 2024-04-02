@@ -45,7 +45,6 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
             { typeof(TimeOnly), SnowflakeTimeOnlyTypeMapping.Default },
             { typeof(DateTime), SnowflakeDateTimeTypeMapping.Default },
             { typeof(DateTimeOffset), SnowflakeDateTimeOffsetTypeMapping.Default },
-            { typeof(byte[]), SnowflakeByteArrayTypeMapping.Default },
         };
 
         _storeTypeMappings = new Dictionary<string, RelationalTypeMapping[]>
@@ -233,6 +232,11 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
             if (clrType == typeof(string))
             {
                 return GetStringMapping(storeTypeName, mappingInfo.Size);
+            }
+
+            if (clrType == typeof(byte[]) && mappingInfo.ElementTypeMapping == null)
+            {
+                return SnowflakeByteArrayTypeMapping.Default;
             }
         }
 
