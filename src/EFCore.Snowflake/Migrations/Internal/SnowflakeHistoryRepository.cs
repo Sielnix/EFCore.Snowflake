@@ -40,7 +40,8 @@ BEGIN
     {script}
     
 END;
-$$
+$$;
+
 """;
 
         return query;
@@ -107,7 +108,8 @@ BEGIN
         const string query = """
     END IF;
 END;
-$$
+$$;
+
 """;
 
         return query;

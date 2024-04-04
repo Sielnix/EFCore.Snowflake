@@ -75,6 +75,7 @@ public static class SnowflakeServiceCollectionExtensions
             .TryAdd<ISqlGenerationHelper, SnowflakeSqlGenerationHelper>()
             .TryAdd<IRelationalAnnotationProvider, SnowflakeAnnotationProvider>()
             .TryAdd<IRelationalTransactionFactory, SnowflakeRelationalTransactionFactory>()
+            .TryAdd<IMigrator, SnowflakeMigrator>()
             .TryAdd<IModificationCommandBatchFactory, SnowflakeModificationCommandBatchFactory>()
             .TryAdd<IRelationalConnection>(p => p.GetRequiredService<ISnowflakeConnection>())
             .TryAdd<ICommandBatchPreparer, SnowflakeCommandBatchPreparer>()
