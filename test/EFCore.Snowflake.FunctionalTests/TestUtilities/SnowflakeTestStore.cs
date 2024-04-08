@@ -9,22 +9,23 @@ public class SnowflakeTestStore : RelationalTestStore
 {
     public SnowflakeTestStore(
         string name,
+        string? schemaOverride,
         bool shared)
         : base(name, shared)
     {
-        string connectionString = CreateConnectionString(name);
+        string connectionString = CreateConnectionString(name, schemaOverride);
 
         this.ConnectionString = connectionString;
         this.Connection = new SnowflakeDbConnection(connectionString);
     }
 
-    public static SnowflakeTestStore Create(string name) => new(name, shared: false);
+    public static SnowflakeTestStore Create(string name, string? schemaOverride) => new(name, schemaOverride, shared: false);
 
-    public static SnowflakeTestStore CreateInitialized(string name)
-        => new SnowflakeTestStore(name, shared: false)
+    public static SnowflakeTestStore CreateInitialized(string name, string? schemaOverride = null)
+        => new SnowflakeTestStore(name, schemaOverride, shared: false)
             .InitializeSnowflake(null, null, null);
 
-    public static SnowflakeTestStore GetOrCreate(string name) => new(name, shared: true);
+    public static SnowflakeTestStore GetOrCreate(string name, string? schemaOverride) => new(name, schemaOverride, shared: true);
 
     public int ExecuteNonQuery(string sql, params object[] parameters)
         => ExecuteNonQuery(Connection, sql);
@@ -130,7 +131,7 @@ public class SnowflakeTestStore : RelationalTestStore
         var command = connection.CreateCommand();
 
         command.CommandText = commandText;
-        
+
         return command;
     }
 
@@ -144,11 +145,16 @@ public class SnowflakeTestStore : RelationalTestStore
         context.Database.EnsureClean();
     }
 
-    public static string CreateConnectionString(string name)
+    public static string CreateConnectionString(string name, string? schemaOverride = null)
     {
         SnowflakeDbConnectionStringBuilder builder = new();
         builder.ConnectionString = TestEnvironment.DefaultConnectionString;
         builder["db"] = name.ToUpperInvariant();
+
+        if (schemaOverride != null)
+        {
+            builder["schema"] = schemaOverride;
+        }
 
         return builder.ToString();
     }

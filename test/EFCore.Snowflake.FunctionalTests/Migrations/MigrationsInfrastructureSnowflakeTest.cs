@@ -42,15 +42,18 @@ public class MigrationsInfrastructureSnowflakeTest(MigrationsInfrastructureSnowf
     [ConditionalFact]
     public async Task Empty_Migration_Creates_Database()
     {
-        await using var context = new BloggingContext(
-            Fixture.TestStore.AddProviderOptions(
-                new DbContextOptionsBuilder().EnableServiceProviderCaching(false)).Options);
+        DbContextOptionsBuilder builder = Fixture.TestStore.AddProviderOptions(
+            new DbContextOptionsBuilder().EnableServiceProviderCaching(false));
+
+        DbContextOptions options = builder.Options;
+
+        await using BloggingContext context = new BloggingContext(options);
 
         var creator = (SnowflakeDatabaseCreator)context.GetService<IRelationalDatabaseCreator>();
 
         await context.Database.MigrateAsync();
 
-        Assert.True(creator.Exists());
+        Assert.True(await creator.ExistsAsync());
     }
 
     private class BloggingContext(DbContextOptions options) : DbContext(options)

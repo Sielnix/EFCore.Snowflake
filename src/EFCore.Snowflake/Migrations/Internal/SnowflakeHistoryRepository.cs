@@ -1,3 +1,4 @@
+using EFCore.Snowflake.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -14,6 +15,21 @@ public class SnowflakeHistoryRepository : HistoryRepository
 
     private RelationalTypeMapping StringTypeMapping =>
         _stringTypeMapping ??= Dependencies.TypeMappingSource.GetMapping(typeof(string));
+
+    protected override string? TableSchema
+    {
+        get
+        {
+            string? baseSchema = base.TableSchema;
+            if (baseSchema != null)
+            {
+                return baseSchema;
+            }
+
+            var connection = (ISnowflakeConnection)Dependencies.Connection;
+            return connection.SchemaInConnectionString;
+        }
+    }
 
     protected override string ExistsSql
     {
