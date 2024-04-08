@@ -199,15 +199,25 @@ public class SnowflakeDatabaseCreator : RelationalDatabaseCreator
         string databaseName = _snowflakeConnection.DatabaseInConnectionString
                               ?? throw new InvalidOperationException("Database name is not set");
 
-        return Dependencies.MigrationsSqlGenerator.Generate(
-            new[]
+        List<MigrationOperation> migrationCommands =
+        [
+            new SnowflakeCreateDatabaseOperation()
             {
-                new SnowflakeCreateDatabaseOperation()
-                {
-                    Name = databaseName,
-                    Collation = designTimeModel.GetRelationalModel().Collation,
-                }
+                Name = databaseName,
+                Collation = designTimeModel.GetRelationalModel().Collation,
+            },
+        ];
+
+        string? schema = _snowflakeConnection.SchemaInConnectionString;
+        if (schema != null && schema != "PUBLIC")
+        {
+            migrationCommands.Add(new EnsureSchemaOperation()
+            {
+                Name = schema
             });
+        }
+
+        return Dependencies.MigrationsSqlGenerator.Generate(migrationCommands);
     }
 
     private IReadOnlyList<MigrationCommand> CreateDropCommands()
