@@ -364,6 +364,11 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
         await Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_sequence_restart_with());
     }
 
+    public override async Task Add_required_primitve_collection_with_custom_default_value_sql_to_existing_table()
+    {
+        await base.Add_required_primitve_collection_with_custom_default_value_sql_to_existing_table_core("'[3, 2, 1]'");
+    }
+
     public override Task Create_sequence_all_settings()
         => Test(
             builder => { },

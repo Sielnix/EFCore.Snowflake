@@ -26,6 +26,9 @@ public class DefaultValuesTest : IDisposable
     private static readonly DateTimeOffset DefaultDateOffset = new(DefaultDate);
     private static readonly DateTimeOffset CustomDateOffset = new(CustomDate);
 
+    private static readonly int[] DefaultValues = [1, 2, 3];
+    private static readonly int[] CustomValues = [4, 5];
+
     private readonly IServiceProvider _serviceProvider = new ServiceCollection()
         .AddEntityFrameworkSnowflake()
         .BuildServiceProvider(validateScopes: true);
@@ -63,7 +66,8 @@ public class DefaultValuesTest : IDisposable
                     Amount = CustomAmount,
                     Price = CustomPrice,
                     Size = CustomSize,
-                    Description = CustomDescription
+                    Description = CustomDescription,
+                    Values = CustomValues
                 }).Entity;
 
             context.SaveChanges();
@@ -74,6 +78,7 @@ public class DefaultValuesTest : IDisposable
             Assert.Equal(DefaultPrice, honeyDijon.Price);
             Assert.Equal(DefaultSize, honeyDijon.Size);
             Assert.Equal(DefaultDescription, honeyDijon.Description);
+            Assert.Equal(DefaultValues, honeyDijon.Values);
 
             Assert.Equal(CustomDate, buffaloBleu.BestBuyDate);
             Assert.Equal(CustomDateOffset, buffaloBleu.BestBuyDateOffset);
@@ -81,6 +86,7 @@ public class DefaultValuesTest : IDisposable
             Assert.Equal(CustomPrice, buffaloBleu.Price);
             Assert.Equal(CustomSize, buffaloBleu.Size);
             Assert.Equal(CustomDescription, buffaloBleu.Description);
+            Assert.Equal(CustomValues, buffaloBleu.Values);
         }
 
         using (var context = new ChipsContext(_serviceProvider, TestStore.Name))
@@ -94,6 +100,7 @@ public class DefaultValuesTest : IDisposable
             Assert.Equal(DefaultPrice, fetchedDefault.Price);
             Assert.Equal(DefaultSize, fetchedDefault.Size);
             Assert.Equal(DefaultDescription, fetchedDefault.Description);
+            Assert.Equal(DefaultValues, fetchedDefault.Values);
 
             Assert.Equal(CustomDate, fetchedCustom.BestBuyDate);
             Assert.Equal(CustomDateOffset, fetchedCustom.BestBuyDateOffset);
@@ -101,6 +108,7 @@ public class DefaultValuesTest : IDisposable
             Assert.Equal(CustomPrice, fetchedCustom.Price);
             Assert.Equal(CustomSize, fetchedCustom.Size);
             Assert.Equal(CustomDescription, fetchedCustom.Description);
+            Assert.Equal(CustomValues, fetchedCustom.Values);
         }
     }
 
@@ -154,6 +162,10 @@ public class DefaultValuesTest : IDisposable
                     b.Property(e => e.Description)
                         .IsRequired()
                         .HasDefaultValue(DefaultDescription);
+
+                    b.Property(e => e.Values)
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValue(DefaultValues);
                 });
     }
 
@@ -168,6 +180,7 @@ public class DefaultValuesTest : IDisposable
         public double Size { get; set; }
         public string Description { get; set; } = null!;
         public string ChipperId { get; set; } = null!;
+        public int[]? Values { get; set; }
 
         public Chipper Manufacturer { get; set; } = null!;
     }

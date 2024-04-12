@@ -12,8 +12,7 @@ public class SnowflakeFilterTests : IClassFixture<SnowflakeFilterTests.Snowflake
     }
 
     protected SnowflakeFilterFixture Fixture { get; }
-
-
+    
     [ConditionalFact]
     public virtual void Inserts_TimeOnly()
     {

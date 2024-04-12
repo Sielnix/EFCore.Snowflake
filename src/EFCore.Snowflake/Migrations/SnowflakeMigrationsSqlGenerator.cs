@@ -4,6 +4,7 @@ using EFCore.Snowflake.Extensions;
 using EFCore.Snowflake.Metadata;
 using EFCore.Snowflake.Metadata.Internal;
 using EFCore.Snowflake.Migrations.Operations;
+using EFCore.Snowflake.Storage.Internal.Mapping;
 using EFCore.Snowflake.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -508,6 +509,42 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
                 .EndCommand();
 
             sqlBuilder.Clear();
+        }
+    }
+
+    protected override void DefaultValue(
+        object? defaultValue,
+        string? defaultValueSql,
+        string? columnType,
+        MigrationCommandListBuilder builder)
+    {
+        if (defaultValueSql != null)
+        {
+            builder
+                .Append(" DEFAULT (")
+                .Append(defaultValueSql)
+                .Append(")");
+        }
+        else if (defaultValue != null)
+        {
+            var typeMapping = (columnType != null
+                                  ? Dependencies.TypeMappingSource.FindMapping(defaultValue.GetType(), columnType)
+                                  : null)
+                              ?? Dependencies.TypeMappingSource.GetMappingForValue(defaultValue);
+
+            string sqlLiteral;
+            if (typeMapping is ISnowflakeCustomizedSqlLiteralProvider snowflakeCustomized)
+            {
+                sqlLiteral = snowflakeCustomized.GenerateSqlLiteralForDdl(defaultValue);
+            }
+            else
+            {
+                sqlLiteral = typeMapping.GenerateSqlLiteral(defaultValue);
+            }
+
+            builder
+                .Append(" DEFAULT ")
+                .Append(sqlLiteral);
         }
     }
 

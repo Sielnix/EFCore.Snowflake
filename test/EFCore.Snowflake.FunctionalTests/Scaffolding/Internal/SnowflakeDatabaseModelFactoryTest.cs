@@ -652,7 +652,9 @@ public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabase
             """
             CREATE TABLE "DefaultValues" (
                 "Id" int,
-                "FixedDefaultValue" TIMESTAMP_NTZ NOT NULL DEFAULT ('2014-01-01 16:00:00'::TIMESTAMP_NTZ)
+                "FixedDefaultValue" TIMESTAMP_NTZ NOT NULL DEFAULT ('2014-01-01 16:00:00'::TIMESTAMP_NTZ),
+                "FixedObjectValue" OBJECT NOT NULL DEFAULT '{}',
+                "FixedArrayValue" ARRAY NOT NULL DEFAULT '[1,2]'
             )
             """,
             Enumerable.Empty<string>(),
@@ -663,6 +665,14 @@ public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabase
                 Assert.Equal(
                     "CAST('2014-01-01 16:00:00' AS TIMESTAMP_NTZ(9))",
                     columns.Single(c => c.Name == "FixedDefaultValue").DefaultValueSql);
+
+                Assert.Equal(
+                    "'{}'",
+                    columns.Single(c => c.Name == "FixedObjectValue").DefaultValueSql);
+
+                Assert.Equal(
+                    "'[1,2]'",
+                    columns.Single(c => c.Name == "FixedArrayValue").DefaultValueSql);
             },
             @"DROP TABLE ""DefaultValues""");
 

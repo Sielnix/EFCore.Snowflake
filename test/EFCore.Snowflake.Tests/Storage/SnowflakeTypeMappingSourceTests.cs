@@ -92,5 +92,4 @@ public class SnowflakeTypeMappingSourceTests
                 Array.Empty<ITypeMappingSourcePlugin>()),
             new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()));
     }
-
 }

@@ -1,4 +1,5 @@
 using EFCore.Snowflake.FunctionalTests.TestUtilities;
+using EFCore.Snowflake.Query;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -92,6 +93,12 @@ public class ComplexTypeQuerySnowflakeTest : ComplexTypeQueryTestBase<ComplexTyp
                 "ValuedCustomer.ShippingAddress#AddressStruct", "ValuedCustomer.BillingAddress#AddressStruct"), exception.Message);
 
         AssertSql();
+    }
+
+    public override async Task
+        Same_entity_with_complex_type_projected_twice_with_pushdown_as_part_of_another_projection(bool async)
+    {
+        await Assert.ThrowsAsync<SnowflakeOuterApplyNotSupportedException>(() => base.Same_entity_with_complex_type_projected_twice_with_pushdown_as_part_of_another_projection(async));
     }
 
     // This test fails because when OptionalCustomer is null, we get all-null results because of the LEFT JOIN, and we materialize this
