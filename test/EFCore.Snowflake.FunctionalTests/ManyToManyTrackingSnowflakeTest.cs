@@ -21,6 +21,14 @@ public class ManyToManyTrackingSnowflakeTest(ManyToManyTrackingSnowflakeTest.Man
         { "UnidirectionalEntityTwo.SelfSkipSharedRight", DeleteBehavior.NoAction },
     };
 
+    [ConditionalFact(Skip="Use hybrid")]
+#pragma warning disable xUnit1024 // Test methods cannot have overloads
+    public new void Many_to_many_delete_behaviors_are_set()
+    {
+        base.Many_to_many_delete_behaviors_are_set();
+    }
+#pragma warning restore xUnit1024 // Test methods cannot have overloads
+
     [ConditionalFact(Skip = "Use Hybrid")]
     public override void Can_delete_with_many_to_many()
     {
@@ -63,7 +71,11 @@ public class ManyToManyTrackingSnowflakeTest(ManyToManyTrackingSnowflakeTest.Man
         base.Can_delete_with_many_to_many_with_navs();
     }
 
-    [ConditionalFact(Skip = "Use Hybrid tables")]
+    [ConditionalTheory(Skip = "Use Hybrid tables")]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
     public override async Task Can_replace_dependent_with_many_to_many(bool createNewCollection, bool async)
     {
         await base.Can_replace_dependent_with_many_to_many(createNewCollection, async);

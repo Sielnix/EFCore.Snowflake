@@ -14,6 +14,9 @@ public class SnowflakeOnDeleteConvention : CascadeDeleteConvention
 
     protected override DeleteBehavior GetTargetDeleteBehavior(IConventionForeignKey foreignKey)
     {
+        // if we would use DeleteBehavior.Cascade (as it is in default implementation) then
+        // this foreign key wouldn't be created at all by Snowflake
+        // todo: check this behavior on hybrid tables
         return DeleteBehavior.NoAction;
     }
 }
