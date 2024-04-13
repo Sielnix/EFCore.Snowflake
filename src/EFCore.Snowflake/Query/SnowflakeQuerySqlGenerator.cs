@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using EFCore.Snowflake.Storage.Internal;
+using EFCore.Snowflake.Storage.Internal.Mapping;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -68,6 +69,17 @@ public class SnowflakeQuerySqlGenerator : QuerySqlGenerator
         Sql.Append(orderingExpression.IsAscending ? " NULLS FIRST" : " NULLS LAST");
 
         return result;
+    }
+
+    protected override Expression VisitCollate(CollateExpression collateExpression)
+    {
+        Visit(collateExpression.Operand);
+
+        Sql.Append(" COLLATE '")
+            .Append(SnowflakeStringLikeEscape.EscapeSqlLiteral(collateExpression.Collation))
+            .Append("'");
+
+        return collateExpression;
     }
 
     protected override void GenerateLimitOffset(SelectExpression selectExpression)
