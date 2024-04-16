@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -26,4 +27,34 @@ internal class Check
         }
     }
 
+    public static string NotEmpty([NotNull] string? value, string parameterName)
+    {
+        if (value is null)
+        {
+            NotEmpty(parameterName, nameof(parameterName));
+
+            throw new ArgumentNullException(parameterName);
+        }
+
+        if (value.Trim().Length == 0)
+        {
+            NotEmpty(parameterName, nameof(parameterName));
+
+            throw new ArgumentException(AbstractionsStrings.ArgumentIsEmpty(parameterName));
+        }
+
+        return value;
+    }
+
+    public static string? NullButNotEmpty(string? value, string parameterName)
+    {
+        if (value is not null && value.Length == 0)
+        {
+            NotEmpty(parameterName, nameof(parameterName));
+
+            throw new ArgumentException(AbstractionsStrings.ArgumentIsEmpty(parameterName));
+        }
+
+        return value;
+    }
 }

@@ -44,6 +44,30 @@ namespace EFCore.Snowflake.Properties
             = new ResourceManager("EFCore.Snowflake.Properties.SnowflakeStrings", typeof(SnowflakeStrings).GetTypeInfo().Assembly);
 
 
+        /// <summary>
+
+        ///     Auto increment value generation cannot be used for the property '{property}' on entity type '{entityType}' because the property type is '{propertyType}'. Auto increment value generation can only be used with signed integer properties.
+
+        /// </summary>
+
+        public static string IdentityBadType(object? property, object? entityType, object? propertyType)
+            => string.Format(
+                GetString("IdentityBadType", nameof(property), nameof(entityType), nameof(propertyType)),
+                property, entityType, propertyType);
+
+
+        /// <summary>
+
+        ///     Snowflake sequences cannot be used to generate values for the property '{property}' on entity type '{entityType}' because the property type is '{propertyType}'. Sequences can only be used with integer properties.
+
+        /// </summary>
+
+        public static string SequenceBadType(object? property, object? entityType, object? propertyType)
+            => string.Format(
+                GetString("SequenceBadType", nameof(property), nameof(entityType), nameof(propertyType)),
+                property, entityType, propertyType);
+
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name) ?? throw new InvalidOperationException($"Value for {name} is null");

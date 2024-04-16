@@ -3,7 +3,9 @@ using EFCore.Snowflake.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace EFCore.Snowflake.Extensions;
+// ReSharper disable once CheckNamespace
+namespace Microsoft.EntityFrameworkCore;
+
 public static class SnowflakeModelExtensions
 {
     public static SnowflakeValueGenerationStrategy? GetValueGenerationStrategy(this IReadOnlyModel model)
@@ -40,6 +42,9 @@ public static class SnowflakeModelExtensions
             value,
             fromDataAnnotation)?.Value;
     }
+
+    public static ConfigurationSource? GetValueGenerationStrategyConfigurationSource(this IConventionModel model)
+        => model.FindAnnotation(SnowflakeAnnotationNames.ValueGenerationStrategy)?.GetConfigurationSource();
 
     public static long? SetIdentitySeed(this IConventionModel model, long? seed, bool fromDataAnnotation = false)
         => (long?)model.SetOrRemoveAnnotation(

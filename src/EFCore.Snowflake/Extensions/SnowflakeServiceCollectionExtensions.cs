@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using EFCore.Snowflake.Diagnostics.Internal;
 using EFCore.Snowflake.Infrastructure;
 using EFCore.Snowflake.Infrastructure.Internal;
@@ -14,7 +13,6 @@ using EFCore.Snowflake.Storage.Internal.Mapping;
 using EFCore.Snowflake.Update;
 using EFCore.Snowflake.Update.Internal;
 using EFCore.Snowflake.Utilities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -24,8 +22,10 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.Extensions.DependencyInjection;
+using System.ComponentModel;
 
-namespace EFCore.Snowflake.Extensions;
+// ReSharper disable once CheckNamespace
+namespace Microsoft.EntityFrameworkCore;
 public static class SnowflakeServiceCollectionExtensions
 {
     public static IServiceCollection AddSnowflake<TContext>(

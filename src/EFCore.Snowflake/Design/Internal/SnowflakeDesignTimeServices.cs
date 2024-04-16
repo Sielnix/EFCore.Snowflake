@@ -1,5 +1,5 @@
-using EFCore.Snowflake.Extensions;
 using EFCore.Snowflake.Scaffolding.Internal;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Scaffolding;
 using Microsoft.Extensions.DependencyInjection;

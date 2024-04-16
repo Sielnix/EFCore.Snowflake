@@ -1,21 +1,71 @@
 using EFCore.Snowflake.Metadata;
 using EFCore.Snowflake.Metadata.Internal;
-using Microsoft.EntityFrameworkCore;
+using EFCore.Snowflake.Properties;
+using EFCore.Snowflake.Utilities;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace EFCore.Snowflake.Extensions;
+// ReSharper disable once CheckNamespace
+namespace Microsoft.EntityFrameworkCore;
+
 internal static class SnowflakePropertyExtensions
 {
+    public static void SetSequenceName(this IMutableProperty property, string? name)
+        => property.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.SequenceName,
+            Check.NullButNotEmpty(name, nameof(name)));
+
+    public static string? SetSequenceName(
+        this IConventionProperty property,
+        string? name,
+        bool fromDataAnnotation = false)
+        => (string?)property.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.SequenceName,
+            Check.NullButNotEmpty(name, nameof(name)),
+            fromDataAnnotation)?.Value;
+
+    public static void SetSequenceSchema(this IMutableProperty property, string? schema)
+        => property.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.SequenceSchema,
+            Check.NullButNotEmpty(schema, nameof(schema)));
+
+    public static string? SetSequenceSchema(
+        this IConventionProperty property,
+        string? schema,
+        bool fromDataAnnotation = false)
+        => (string?)property.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.SequenceSchema,
+            Check.NullButNotEmpty(schema, nameof(schema)),
+            fromDataAnnotation)?.Value;
+
+    public static SnowflakeValueGenerationStrategy GetValueGenerationStrategy(this IReadOnlyProperty property)
+    {
+        var annotation = property.FindAnnotation(SnowflakeAnnotationNames.ValueGenerationStrategy);
+        if (annotation != null)
+        {
+            return (SnowflakeValueGenerationStrategy?)annotation.Value ?? SnowflakeValueGenerationStrategy.None;
+        }
+
+        var defaultValueGenerationStrategy = GetDefaultValueGenerationStrategy(property);
+
+        if (property.ValueGenerated != ValueGenerated.OnAdd
+            || property.IsForeignKey()
+            || property.TryGetDefaultValue(out _)
+            || (defaultValueGenerationStrategy != SnowflakeValueGenerationStrategy.Sequence && property.GetDefaultValueSql() != null)
+            || property.GetComputedColumnSql() != null)
+        {
+            return SnowflakeValueGenerationStrategy.None;
+        }
+
+        return defaultValueGenerationStrategy;
+    }
+
     public static SnowflakeValueGenerationStrategy GetValueGenerationStrategy(
         this IReadOnlyProperty property,
         in StoreObjectIdentifier storeObject)
-    {
-        return GetValueGenerationStrategy(property, storeObject, null);
-    }
+        => GetValueGenerationStrategy(property, storeObject, null);
 
     internal static SnowflakeValueGenerationStrategy GetValueGenerationStrategy(
         this IReadOnlyProperty property,
@@ -80,6 +130,83 @@ internal static class SnowflakePropertyExtensions
         return defaultStrategy;
     }
 
+    public static SnowflakeValueGenerationStrategy? GetValueGenerationStrategy(
+        this IReadOnlyRelationalPropertyOverrides overrides)
+        => (SnowflakeValueGenerationStrategy?)overrides.FindAnnotation(SnowflakeAnnotationNames.ValueGenerationStrategy)
+            ?.Value;
+
+    public static void SetValueGenerationStrategy(
+        this IMutableProperty property,
+        SnowflakeValueGenerationStrategy? value)
+        => property.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.ValueGenerationStrategy,
+            CheckValueGenerationStrategy(property, value));
+
+    public static SnowflakeValueGenerationStrategy? SetValueGenerationStrategy(
+        this IConventionProperty property,
+        SnowflakeValueGenerationStrategy? value,
+        bool fromDataAnnotation = false)
+        => (SnowflakeValueGenerationStrategy?)property.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.ValueGenerationStrategy,
+            CheckValueGenerationStrategy(property, value),
+            fromDataAnnotation)?.Value;
+
+    public static void SetValueGenerationStrategy(
+        this IMutableRelationalPropertyOverrides overrides,
+        SnowflakeValueGenerationStrategy? value)
+        => overrides.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.ValueGenerationStrategy,
+            CheckValueGenerationStrategy(overrides.Property, value));
+
+    /// <summary>
+    ///     Sets the <see cref="SnowflakeValueGenerationStrategy" /> to use for the property for a particular table.
+    /// </summary>
+    /// <param name="overrides">The property overrides.</param>
+    /// <param name="value">The strategy to use.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns>The configured value.</returns>
+    public static SnowflakeValueGenerationStrategy? SetValueGenerationStrategy(
+        this IConventionRelationalPropertyOverrides overrides,
+        SnowflakeValueGenerationStrategy? value,
+        bool fromDataAnnotation = false)
+        => (SnowflakeValueGenerationStrategy?)overrides.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.ValueGenerationStrategy,
+            CheckValueGenerationStrategy(overrides.Property, value),
+            fromDataAnnotation)?.Value;
+
+    /// <summary>
+    ///     Returns the <see cref="ConfigurationSource" /> for the <see cref="SnowflakeValueGenerationStrategy" />.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <returns>The <see cref="ConfigurationSource" /> for the <see cref="SnowflakeValueGenerationStrategy" />.</returns>
+    public static ConfigurationSource? GetValueGenerationStrategyConfigurationSource(
+        this IConventionProperty property)
+        => property.FindAnnotation(SnowflakeAnnotationNames.ValueGenerationStrategy)?.GetConfigurationSource();
+
+    /// <summary>
+    ///     Returns the <see cref="ConfigurationSource" /> for the <see cref="SnowflakeValueGenerationStrategy" /> for a particular table.
+    /// </summary>
+    /// <param name="overrides">The property overrides.</param>
+    /// <returns>The <see cref="ConfigurationSource" /> for the <see cref="SnowflakeValueGenerationStrategy" />.</returns>
+    public static ConfigurationSource? GetValueGenerationStrategyConfigurationSource(
+        this IConventionRelationalPropertyOverrides overrides)
+        => overrides.FindAnnotation(SnowflakeAnnotationNames.ValueGenerationStrategy)?.GetConfigurationSource();
+
+    private static SnowflakeValueGenerationStrategy GetDefaultValueGenerationStrategy(IReadOnlyProperty property)
+    {
+        SnowflakeValueGenerationStrategy? modelStrategy = property.DeclaringType.Model.GetValueGenerationStrategy();
+
+        if (
+            !modelStrategy.HasValue
+            || modelStrategy.Value == SnowflakeValueGenerationStrategy.None
+            || !IsCompatibleWithValueGeneration(property))
+        {
+            return SnowflakeValueGenerationStrategy.None;
+        }
+
+        return modelStrategy.Value;
+    }
+
     private static SnowflakeValueGenerationStrategy GetDefaultValueGenerationStrategy(
         IReadOnlyProperty property,
         in StoreObjectIdentifier storeObject,
@@ -88,12 +215,51 @@ internal static class SnowflakePropertyExtensions
         var modelStrategy = property.DeclaringType.Model.GetValueGenerationStrategy();
 
         return modelStrategy == SnowflakeValueGenerationStrategy.AutoIncrement
-               && IsCompatibleAutoIncrementColumn(property, in storeObject, typeMappingSource)
+               && IsCompatibleWithValueGeneration(property, in storeObject, typeMappingSource)
             ? SnowflakeValueGenerationStrategy.AutoIncrement
             : SnowflakeValueGenerationStrategy.None;
     }
 
-    private static bool IsCompatibleAutoIncrementColumn(
+    private static SnowflakeValueGenerationStrategy? CheckValueGenerationStrategy(IReadOnlyProperty property, SnowflakeValueGenerationStrategy? value)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        var propertyType = property.ClrType;
+
+        if ((value == SnowflakeValueGenerationStrategy.AutoIncrement)
+            && !IsCompatibleWithValueGeneration(property))
+        {
+            throw new ArgumentException(
+                SnowflakeStrings.IdentityBadType(
+                    property.Name, property.DeclaringType.DisplayName(), propertyType.ShortDisplayName()));
+        }
+
+        if (value == SnowflakeValueGenerationStrategy.Sequence
+            && !IsCompatibleWithValueGeneration(property))
+        {
+            throw new ArgumentException(
+                SnowflakeStrings.SequenceBadType(
+                    property.Name, property.DeclaringType.DisplayName(), propertyType.ShortDisplayName()));
+        }
+
+        return value;
+    }
+
+    public static bool IsCompatibleWithValueGeneration(IReadOnlyProperty property)
+    {
+        var valueConverter = property.GetValueConverter()
+                             ?? property.FindTypeMapping()?.Converter;
+
+        var type = (valueConverter?.ProviderClrType ?? property.ClrType).UnwrapNullableType();
+        return type.IsInteger()
+               || type.IsEnum
+               || type == typeof(decimal);
+    }
+
+    private static bool IsCompatibleWithValueGeneration(
         IReadOnlyProperty property,
         in StoreObjectIdentifier storeObject,
         ITypeMappingSource? typeMappingSource)
@@ -103,21 +269,15 @@ internal static class SnowflakePropertyExtensions
             return false;
         }
 
-        ValueConverter? valueConverter = GetConverter(property, storeObject, typeMappingSource);
+        var valueConverter = property.GetValueConverter()
+                             ?? (property.FindRelationalTypeMapping(storeObject)
+                                 ?? typeMappingSource?.FindMapping((IProperty)property))?.Converter;
+
         var type = (valueConverter?.ProviderClrType ?? property.ClrType).UnwrapNullableType();
 
         return (type.IsInteger()
+                || type.IsEnum
                 || type == typeof(decimal));
-    }
-
-    private static ValueConverter? GetConverter(
-        IReadOnlyProperty property,
-        StoreObjectIdentifier storeObject,
-        ITypeMappingSource? typeMappingSource)
-    {
-        return property.GetValueConverter()
-               ?? (property.FindRelationalTypeMapping(storeObject)
-                   ?? typeMappingSource?.FindMapping((IProperty)property))?.Converter;
     }
 
     public static long? GetIdentitySeed(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
@@ -147,6 +307,20 @@ internal static class SnowflakePropertyExtensions
             : sharedProperty.GetIdentitySeed(storeObject);
     }
 
+    public static void SetIdentitySeed(this IMutableProperty property, long? seed)
+        => property.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.IdentitySeed,
+            seed);
+
+    public static long? SetIdentitySeed(
+        this IConventionProperty property,
+        long? seed,
+        bool fromDataAnnotation = false)
+        => (long?)property.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.IdentitySeed,
+            seed,
+            fromDataAnnotation)?.Value;
+
     public static int? GetIdentityIncrement(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
     {
         if (property is RuntimeProperty)
@@ -171,4 +345,18 @@ internal static class SnowflakePropertyExtensions
             ? property.DeclaringType.Model.GetIdentityIncrement()
             : sharedProperty.GetIdentityIncrement(storeObject);
     }
+
+    public static void SetIdentityIncrement(this IMutableProperty property, int? increment)
+        => property.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.IdentityIncrement,
+            increment);
+
+    public static int? SetIdentityIncrement(
+        this IConventionProperty property,
+        int? increment,
+        bool fromDataAnnotation = false)
+        => (int?)property.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.IdentityIncrement,
+            increment,
+            fromDataAnnotation)?.Value;
 }

@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="IdentityBadType" xml:space="preserve">
+    <value>Auto increment value generation cannot be used for the property '{property}' on entity type '{entityType}' because the property type is '{propertyType}'. Auto increment value generation can only be used with signed integer properties.</value>
+  </data>
   <data name="LogFoundColumn" xml:space="preserve">
     <value>Found column with table: {tableName}, column name: {columnName}, data type: {dataType}, nullable: {isNullable}, identity: {isIdentity}, default value: {defaultValue}, computed value: {computedValue}</value>
     <comment>Debug SnowflakeEventId.ColumnFound string string string bool bool string string</comment>
@@ -132,5 +135,8 @@
   <data name="LogPrincipalTableNotInSelectionSet" xml:space="preserve">
     <value>For foreign key {fkName} on table {tableName}, unable to model the end of the foreign key on principal table {principalTableName}. This is usually because the principal table was not included in the selection set.</value>
     <comment>Warning SnowflakeEventId.ForeignKeyReferencesMissingPrincipalTableWarning string? string? string?</comment>
+  </data>
+  <data name="SequenceBadType" xml:space="preserve">
+    <value>Snowflake sequences cannot be used to generate values for the property '{property}' on entity type '{entityType}' because the property type is '{propertyType}'. Sequences can only be used with integer properties.</value>
   </data>
 </root>

@@ -15,6 +15,7 @@ public class SnowflakeMethodCallTranslatorProvider : RelationalMethodCallTransla
             new SnowflakeDateOnlyMethodTranslator(sqlExpressionFactory),
             new SnowflakeDateTimeMethodTranslator(sqlExpressionFactory),
             new SnowflakeMathTranslator(sqlExpressionFactory),
+            new SnowflakeObjectToStringTranslator(sqlExpressionFactory),
             new SnowflakeStringMethodTranslator(sqlExpressionFactory),
             new SnowflakeTimeOnlyMethodTranslator(sqlExpressionFactory)
         });
