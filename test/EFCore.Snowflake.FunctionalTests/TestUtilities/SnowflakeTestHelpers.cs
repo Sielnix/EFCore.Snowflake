@@ -1,5 +1,4 @@
 using EFCore.Snowflake.Diagnostics.Internal;
-using EFCore.Snowflake.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.TestUtilities;

@@ -25,10 +25,6 @@ public class MonsterFixupChangedChangingSnowflakeTest :
             builder.Entity<TMessage>().Property(e => e.MessageId).UseIdentityColumn();
             builder.Entity<TProductPhoto>().Property(e => e.PhotoId).UseIdentityColumn();
             builder.Entity<TProductReview>().Property(e => e.ReviewId).UseIdentityColumn();
-
-            //builder.Entity<TMessage>().HasKey(e => e.MessageId);
-            //builder.Entity<TProductPhoto>().HasKey(e => e.PhotoId);
-            //builder.Entity<TProductReview>().HasKey(e => e.ReviewId);
         }
     }
 }
