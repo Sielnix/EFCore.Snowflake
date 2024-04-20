@@ -67,6 +67,9 @@ public static class SnowflakeModelExtensions
                 : (long)annotation.Value;
     }
 
+    public static ConfigurationSource? GetIdentitySeedConfigurationSource(this IConventionModel model)
+        => model.FindAnnotation(SnowflakeAnnotationNames.IdentitySeed)?.GetConfigurationSource();
+
     public static int? SetIdentityIncrement(
         this IConventionModel model,
         int? increment,
@@ -83,6 +86,9 @@ public static class SnowflakeModelExtensions
             : (int?)model[SnowflakeAnnotationNames.IdentityIncrement] ?? 1;
     }
 
+    public static ConfigurationSource? GetIdentityIncrementConfigurationSource(this IConventionModel model)
+        => model.FindAnnotation(SnowflakeAnnotationNames.IdentityIncrement)?.GetConfigurationSource();
+
     public static SnowflakeIndexBehavior? SetIndexBehavior(
         this IConventionModel model,
         SnowflakeIndexBehavior? indexBehavior,
@@ -91,4 +97,7 @@ public static class SnowflakeModelExtensions
             SnowflakeAnnotationNames.IndexBehavior,
             indexBehavior,
             fromDataAnnotation)?.Value;
+
+    public static ConfigurationSource? GetIndexBehaviorConfigurationSource(this IConventionModel model)
+        => model.FindAnnotation(SnowflakeAnnotationNames.IndexBehavior)?.GetConfigurationSource();
 }

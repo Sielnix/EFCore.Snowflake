@@ -25,9 +25,9 @@ public static class SnowflakeDbContextOptionsBuilderExtensions
     }
 
     public static DbContextOptionsBuilder UseSnowflake(
-    this DbContextOptionsBuilder optionsBuilder,
-    string? connectionString,
-    Action<SnowflakeDbContextOptionsBuilder>? snowflakeOptionsAction = null)
+        this DbContextOptionsBuilder optionsBuilder,
+        string? connectionString,
+        Action<SnowflakeDbContextOptionsBuilder>? snowflakeOptionsAction = null)
     {
         Check.NotNull(optionsBuilder, nameof(optionsBuilder));
         SnowflakeOptionsExtension extension = (SnowflakeOptionsExtension)GetOrCreateExtension(optionsBuilder).WithConnectionString(connectionString);
@@ -44,8 +44,8 @@ public static class SnowflakeDbContextOptionsBuilderExtensions
     public static DbContextOptionsBuilder UseSnowflake(
         this DbContextOptionsBuilder optionsBuilder,
         DbConnection connection,
-        Action<SnowflakeDbContextOptionsBuilder>? npgsqlOptionsAction = null)
-        => UseSnowflake(optionsBuilder, connection, contextOwnsConnection: false, npgsqlOptionsAction);
+        Action<SnowflakeDbContextOptionsBuilder>? snowflakeOptionsAction = null)
+        => UseSnowflake(optionsBuilder, connection, contextOwnsConnection: false, snowflakeOptionsAction);
 
     public static DbContextOptionsBuilder UseSnowflake(
         this DbContextOptionsBuilder optionsBuilder,
@@ -62,6 +62,38 @@ public static class SnowflakeDbContextOptionsBuilderExtensions
 
         return optionsBuilder;
     }
+
+    public static DbContextOptionsBuilder<TContext> UseSnowflake<TContext>(
+        this DbContextOptionsBuilder<TContext> optionsBuilder,
+        Action<SnowflakeDbContextOptionsBuilder>? snowflakeOptionsAction = null)
+        where TContext : DbContext
+        => (DbContextOptionsBuilder<TContext>)UseSnowflake(
+            (DbContextOptionsBuilder)optionsBuilder, snowflakeOptionsAction);
+
+    public static DbContextOptionsBuilder<TContext> UseSnowflake<TContext>(
+        this DbContextOptionsBuilder<TContext> optionsBuilder,
+        string? connectionString,
+        Action<SnowflakeDbContextOptionsBuilder>? snowflakeOptionsAction = null)
+        where TContext : DbContext
+        => (DbContextOptionsBuilder<TContext>)UseSnowflake(
+            (DbContextOptionsBuilder)optionsBuilder, connectionString, snowflakeOptionsAction);
+
+    public static DbContextOptionsBuilder<TContext> UseSnowflake<TContext>(
+        this DbContextOptionsBuilder<TContext> optionsBuilder,
+        DbConnection connection,
+        Action<SnowflakeDbContextOptionsBuilder>? snowflakeOptionsAction = null)
+        where TContext : DbContext
+        => (DbContextOptionsBuilder<TContext>)UseSnowflake(
+            (DbContextOptionsBuilder)optionsBuilder, connection, snowflakeOptionsAction);
+
+    public static DbContextOptionsBuilder<TContext> UseSnowflake<TContext>(
+        this DbContextOptionsBuilder<TContext> optionsBuilder,
+        DbConnection connection,
+        bool contextOwnsConnection,
+        Action<SnowflakeDbContextOptionsBuilder>? snowflakeOptionsAction = null)
+        where TContext : DbContext
+        => (DbContextOptionsBuilder<TContext>)UseSnowflake(
+            (DbContextOptionsBuilder)optionsBuilder, connection, contextOwnsConnection, snowflakeOptionsAction);
 
     private static SnowflakeOptionsExtension GetOrCreateExtension(DbContextOptionsBuilder optionsBuilder)
     {

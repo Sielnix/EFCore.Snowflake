@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;
 
-internal static class SnowflakePropertyExtensions
+public static class SnowflakePropertyExtensions
 {
     public static void SetSequenceName(this IMutableProperty property, string? name)
         => property.SetOrRemoveAnnotation(
@@ -26,6 +26,9 @@ internal static class SnowflakePropertyExtensions
             Check.NullButNotEmpty(name, nameof(name)),
             fromDataAnnotation)?.Value;
 
+    public static ConfigurationSource? GetSequenceNameConfigurationSource(this IConventionProperty property)
+        => property.FindAnnotation(SnowflakeAnnotationNames.SequenceName)?.GetConfigurationSource();
+
     public static void SetSequenceSchema(this IMutableProperty property, string? schema)
         => property.SetOrRemoveAnnotation(
             SnowflakeAnnotationNames.SequenceSchema,
@@ -39,6 +42,9 @@ internal static class SnowflakePropertyExtensions
             SnowflakeAnnotationNames.SequenceSchema,
             Check.NullButNotEmpty(schema, nameof(schema)),
             fromDataAnnotation)?.Value;
+
+    public static ConfigurationSource? GetSequenceSchemaConfigurationSource(this IConventionProperty property)
+        => property.FindAnnotation(SnowflakeAnnotationNames.SequenceSchema)?.GetConfigurationSource();
 
     public static SnowflakeValueGenerationStrategy GetValueGenerationStrategy(this IReadOnlyProperty property)
     {
@@ -321,6 +327,18 @@ internal static class SnowflakePropertyExtensions
             seed,
             fromDataAnnotation)?.Value;
 
+    public static ConfigurationSource? GetIdentitySeedConfigurationSource(this IConventionProperty property)
+        => property.FindAnnotation(SnowflakeAnnotationNames.IdentitySeed)?.GetConfigurationSource();
+
+    public static ConfigurationSource? GetIdentitySeedConfigurationSource(
+        this IConventionProperty property,
+        in StoreObjectIdentifier storeObject)
+        => property.FindOverrides(storeObject)?.GetIdentitySeedConfigurationSource();
+
+    public static ConfigurationSource? GetIdentitySeedConfigurationSource(
+        this IConventionRelationalPropertyOverrides overrides)
+        => overrides.FindAnnotation(SnowflakeAnnotationNames.IdentitySeed)?.GetConfigurationSource();
+
     public static int? GetIdentityIncrement(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
     {
         if (property is RuntimeProperty)
@@ -359,4 +377,16 @@ internal static class SnowflakePropertyExtensions
             SnowflakeAnnotationNames.IdentityIncrement,
             increment,
             fromDataAnnotation)?.Value;
+
+    public static ConfigurationSource? GetIdentityIncrementConfigurationSource(this IConventionProperty property)
+        => property.FindAnnotation(SnowflakeAnnotationNames.IdentityIncrement)?.GetConfigurationSource();
+
+    public static ConfigurationSource? GetIdentityIncrementConfigurationSource(
+        this IConventionProperty property,
+        in StoreObjectIdentifier storeObject)
+        => property.FindOverrides(storeObject)?.GetIdentityIncrementConfigurationSource();
+
+    public static ConfigurationSource? GetIdentityIncrementConfigurationSource(
+        this IConventionRelationalPropertyOverrides overrides)
+        => overrides.FindAnnotation(SnowflakeAnnotationNames.IdentityIncrement)?.GetConfigurationSource();
 }

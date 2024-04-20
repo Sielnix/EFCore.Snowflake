@@ -39,8 +39,7 @@ public static class SnowflakePropertyBuilderExtensions
         return propertyBuilder.CanSetAnnotation(SnowflakeAnnotationNames.SequenceName, name, fromDataAnnotation)
                && propertyBuilder.CanSetAnnotation(SnowflakeAnnotationNames.SequenceSchema, schema, fromDataAnnotation);
     }
-
-
+    
     public static IConventionPropertyBuilder? HasIdentityColumnSeed(
         this IConventionPropertyBuilder propertyBuilder,
         long? seed,
@@ -141,4 +140,13 @@ public static class SnowflakePropertyBuilderExtensions
 
         return null;
     }
+
+    public static bool CanSetValueGenerationStrategy(
+        this IConventionPropertyBuilder propertyBuilder,
+        SnowflakeValueGenerationStrategy? valueGenerationStrategy,
+        bool fromDataAnnotation = false)
+        => (valueGenerationStrategy == null
+            || SnowflakePropertyExtensions.IsCompatibleWithValueGeneration(propertyBuilder.Metadata))
+           && propertyBuilder.CanSetAnnotation(
+               SnowflakeAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy, fromDataAnnotation);
 }
