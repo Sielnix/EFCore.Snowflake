@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,20 @@ public class BuiltInDataTypesSnowflakeTest : BuiltInDataTypesTestBase<BuiltInDat
     {
         Fixture.TestSqlLoggerFactory.Clear();
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+    }
+
+    public override void Object_to_string_conversion()
+    {
+        CultureInfo cult = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            base.Object_to_string_conversion();
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = cult;
+        }
     }
 
     public override void Can_query_with_null_parameters_using_any_nullable_data_type()

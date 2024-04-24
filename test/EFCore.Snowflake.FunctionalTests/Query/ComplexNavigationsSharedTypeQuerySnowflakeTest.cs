@@ -19,6 +19,16 @@ public class ComplexNavigationsSharedTypeQuerySnowflakeTest :
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
+    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/33590")]
+    [MemberData(nameof(IsAsyncData))]
+    public override async Task Distinct_skip_without_orderby(bool async)
+        => await base.Distinct_skip_without_orderby(async);
+
+    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/33590")]
+    [MemberData(nameof(IsAsyncData))]
+    public override async Task Distinct_take_without_orderby(bool async)
+        => await base.Distinct_take_without_orderby(async);
+
     public override async Task Collection_FirstOrDefault_property_accesses_in_projection(bool async)
     {
         await Assert.ThrowsAsync<SnowflakeDbException>(async () =>

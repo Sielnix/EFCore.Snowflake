@@ -63,6 +63,31 @@ public class SnowflakeObjectToStringTranslator : IMethodCallTranslator
             return null;
         }
 
+        if (instance.Type == typeof(bool))
+        {
+            if (instance is ColumnExpression { IsNullable: true })
+            {
+                return _sqlExpressionFactory.Case(
+                    [
+                        new CaseWhenClause(
+                            _sqlExpressionFactory.Equal(instance, _sqlExpressionFactory.Constant(false)),
+                            _sqlExpressionFactory.Constant(false.ToString())),
+                        new CaseWhenClause(
+                            _sqlExpressionFactory.Equal(instance, _sqlExpressionFactory.Constant(true)),
+                            _sqlExpressionFactory.Constant(true.ToString()))
+                    ],
+                    _sqlExpressionFactory.Constant(null));
+            }
+
+            return _sqlExpressionFactory.Case(
+                [
+                    new CaseWhenClause(
+                        _sqlExpressionFactory.Equal(instance, _sqlExpressionFactory.Constant(false)),
+                        _sqlExpressionFactory.Constant(false.ToString()))
+                ],
+                _sqlExpressionFactory.Constant(true.ToString()));
+        }
+
         SqlFunctionExpression result = _sqlExpressionFactory.Function(
             "TO_VARCHAR",
             [instance],

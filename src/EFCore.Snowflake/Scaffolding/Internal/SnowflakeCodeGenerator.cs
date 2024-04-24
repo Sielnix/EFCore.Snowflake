@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Scaffolding;
 
-namespace EFCore.Snowflake.Design.Internal;
+namespace EFCore.Snowflake.Scaffolding.Internal;
 
 public class SnowflakeCodeGenerator : ProviderCodeGenerator
 {
