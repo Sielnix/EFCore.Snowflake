@@ -17,7 +17,10 @@ public class SnowflakeUShortTypeMapping : UShortTypeMapping
                     jsonValueReaderWriter: JsonUInt16ReaderWriter.Instance
                 ),
                 storeType: "NUMBER(5,0)",
-                dbType: System.Data.DbType.Int64))
+                dbType: System.Data.DbType.Int64,
+                precision: 5,
+                scale: 0,
+                storeTypePostfix: StoreTypePostfix.PrecisionAndScale))
     {
     }
 

@@ -22,7 +22,8 @@ public class SnowflakeTimeOnlyTypeMapping : TimeOnlyTypeMapping
                 ),
                 storeType: SnowflakeStoreTypeNames.GetTimeType(SnowflakeStoreTypeNames.Time, precision),
                 dbType: System.Data.DbType.Time,
-                size: precision))
+                precision: precision,
+                storeTypePostfix: StoreTypePostfix.Precision))
     {
     }
 

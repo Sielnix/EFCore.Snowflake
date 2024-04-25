@@ -18,7 +18,8 @@ public class SnowflakeDateTimeOffsetTypeMapping : DateTimeOffsetTypeMapping
                 ),
                 storeType: SnowflakeStoreTypeNames.GetTimeType(SnowflakeStoreTypeNames.TimestampTz, precision),
                 dbType: System.Data.DbType.DateTimeOffset,
-                precision: precision))
+                precision: precision,
+                storeTypePostfix: StoreTypePostfix.Precision))
     {
     }
 

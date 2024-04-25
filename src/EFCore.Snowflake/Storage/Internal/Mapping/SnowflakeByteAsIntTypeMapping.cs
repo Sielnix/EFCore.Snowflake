@@ -1,26 +1,31 @@
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EFCore.Snowflake.Storage.Internal.Mapping;
 
-internal class SnowflakeByteAsIntTypeMapping : ByteTypeMapping
+public class SnowflakeByteAsIntTypeMapping : ByteTypeMapping
 {
     public new static SnowflakeByteAsIntTypeMapping Default { get; } = new();
 
-    public SnowflakeByteAsIntTypeMapping(string? storeType = null)
+    public SnowflakeByteAsIntTypeMapping(int? precision = null)
         : this(
             new RelationalTypeMappingParameters(
                 new CoreTypeMappingParameters(
                     typeof(byte),
-                    converter: new ValueConverterImpl()
+                    converter: new ValueConverterImpl(),
+                    jsonValueReaderWriter: JsonByteReaderWriter.Instance
                     ),
-                storeType: storeType ?? SnowflakeStoreTypeNames.GetIntegerTypeToHoldEverything(
-                    SignedIntegerType.Byte),
-                dbType: System.Data.DbType.Int64))
+                storeType: SnowflakeStoreTypeNames.Number,
+                precision: precision ?? SnowflakeStoreTypeNames.GetIntegerTypePrecisionToHoldEverything(SignedIntegerType.Byte),
+                scale: SnowflakeStoreTypeNames.IntegerTypeScale,
+                dbType: System.Data.DbType.Int64,
+                storeTypePostfix: StoreTypePostfix.PrecisionAndScale))
     {
     }
 
-    protected SnowflakeByteAsIntTypeMapping(RelationalTypeMappingParameters parameters) : base(parameters)
+    protected SnowflakeByteAsIntTypeMapping(RelationalTypeMappingParameters parameters)
+        : base(parameters)
     {
     }
 

@@ -17,7 +17,10 @@ public class SnowflakeULongTypeMapping : ULongTypeMapping
                     jsonValueReaderWriter: JsonUInt64ReaderWriter.Instance
                 ),
                 storeType: "NUMBER(20,0)",
-                dbType: System.Data.DbType.Int64))
+                dbType: System.Data.DbType.Int64,
+                precision: 20,
+                scale: SnowflakeStoreTypeNames.IntegerTypeScale,
+                storeTypePostfix: StoreTypePostfix.PrecisionAndScale))
     {
     }
 

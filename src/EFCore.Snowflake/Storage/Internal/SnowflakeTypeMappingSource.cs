@@ -7,12 +7,15 @@ namespace EFCore.Snowflake.Storage.Internal;
 public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
 {
     private readonly SnowflakeCharTypeMapping _charTypeMapping = SnowflakeCharTypeMapping.Default;
-    private readonly DecimalTypeMapping _decimalTypeMapping = new(SnowflakeStoreTypeNames.DefaultDecimal);
-    private readonly ShortTypeMapping _shortTypeMapping = new(SnowflakeStoreTypeNames.GetIntegerTypeToHoldEverything(SignedIntegerType.Short));
-    private readonly IntTypeMapping _intTypeMapping = new(SnowflakeStoreTypeNames.GetIntegerTypeToHoldEverything(SignedIntegerType.Int));
-    private readonly LongTypeMapping _longTypeMapping = new(SnowflakeStoreTypeNames.GetIntegerTypeToHoldEverything(SignedIntegerType.Long));
+    private readonly DecimalTypeMapping _decimalTypeMapping = SnowflakeDecimalTypeMapping.Default;
+    private readonly SnowflakeShortTypeMapping _shortTypeMapping = SnowflakeShortTypeMapping.Default;
+    private readonly SnowflakeIntTypeMapping _intTypeMapping = SnowflakeIntTypeMapping.Default;
+    private readonly SnowflakeLongTypeMapping _longTypeMapping = SnowflakeLongTypeMapping.Default;
     private readonly DoubleTypeMapping _doubleTypeMapping = new(SnowflakeStoreTypeNames.Float);
     private readonly FloatTypeMapping _floatTypeMapping = new(SnowflakeStoreTypeNames.Float);
+
+    private readonly SnowflakeDoubleAsNumberTypeMapping _doubleAsNumberTypeMapping = SnowflakeDoubleAsNumberTypeMapping.Default;
+    private readonly SnowflakeFloatAsNumberTypeMapping _floatAsNumberTypeMapping = SnowflakeFloatAsNumberTypeMapping.Default;
 
     private readonly Dictionary<Type, RelationalTypeMapping> _clrTypeMappings;
 
@@ -47,7 +50,7 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
             { typeof(DateTimeOffset), SnowflakeDateTimeOffsetTypeMapping.Default },
         };
 
-        _storeTypeMappings = new Dictionary<string, RelationalTypeMapping[]>
+        _storeTypeMappings = new Dictionary<string, RelationalTypeMapping[]>(SnowflakeStoreTypeNames.TypeNameComparer)
         {
             { SnowflakeStoreTypeNames.Boolean, [ SnowflakeBoolTypeMapping.Default ] },
             { SnowflakeStoreTypeNames.Date, [ SnowflakeDateOnlyTypeMapping.Default, new SnowflakeDateTimeTypeMapping(SnowflakeStoreTypeNames.Date, precision: null) ] },
@@ -59,7 +62,9 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
             { SnowflakeStoreTypeNames.Object, [ SnowflakeObjectTypeMapping.Default ] }
         };
 
-        _storeTimeTypeMappings = new Dictionary<string, RelationalTypeMapping[]>
+        ExtendWithAliases(_storeTypeMappings);
+
+        _storeTimeTypeMappings = new Dictionary<string, RelationalTypeMapping[]>(SnowflakeStoreTypeNames.TypeNameComparer)
         {
             {
                 SnowflakeStoreTypeNames.Time,
@@ -71,9 +76,11 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
                 ]
             },
             { SnowflakeStoreTypeNames.TimestampNtz, [ SnowflakeDateTimeTypeMapping.Default ] },
-            { SnowflakeStoreTypeNames.TimestampLtz, [ SnowflakeDateTimeTypeMapping.Default ] },
+            { SnowflakeStoreTypeNames.TimestampLtz, [ SnowflakeDateTimeTypeMapping.LtzMapping] },
             { SnowflakeStoreTypeNames.TimestampTz, [ SnowflakeDateTimeOffsetTypeMapping.Default ] },
         };
+
+        ExtendWithAliases(_storeTimeTypeMappings);
 
         _integerNumberTypeMappings = [
             SnowflakeByteAsIntTypeMapping.Default,
@@ -85,15 +92,29 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
             _longTypeMapping,
             SnowflakeULongTypeMapping.Default,
             _decimalTypeMapping,
-            _doubleTypeMapping,
-            _floatTypeMapping
+            _doubleAsNumberTypeMapping,
+            _floatAsNumberTypeMapping
         ];
 
         _rationalNumberTypeMappings = [
             _decimalTypeMapping,
-            _doubleTypeMapping,
-            _floatTypeMapping
+            _doubleAsNumberTypeMapping,
+            _floatAsNumberTypeMapping
         ];
+    }
+
+    private static void ExtendWithAliases<T>(Dictionary<string, T> mappings)
+    {
+        foreach (var aliasTypeNames in SnowflakeStoreTypeNames.AliasTypeNames)
+        {
+            if (mappings.TryGetValue(aliasTypeNames.Key, out T? mappingInfo))
+            {
+                foreach (string aliasTypeName in aliasTypeNames.Value)
+                {
+                    mappings.Add(aliasTypeName, mappingInfo);
+                }
+            }
+        }
     }
 
     protected override RelationalTypeMapping? FindMapping(in RelationalTypeMappingInfo mappingInfo)
@@ -163,16 +184,17 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
                     : mapping.FirstOrDefault(m => m.ClrType == clrType);
 
                 return mappingType?
-                    .WithStoreTypeAndSize(storeTypeName, null)
-                    .WithPrecisionAndScale(precision: mappingInfo.Size, null);
+                    .WithPrecisionAndScale(
+                        precision: mappingInfo.Precision ?? mappingInfo.Size ?? mappingType.Precision,
+                        scale: null);
             }
 
-            if (storeTypeNameBase == SnowflakeStoreTypeNames.Binary)
+            if (SnowflakeStoreTypeNames.TypeNameComparer.Equals(storeTypeNameBase, SnowflakeStoreTypeNames.Binary))
             {
                 return new ByteArrayTypeMapping(storeTypeName, size: mappingInfo.Size);
             }
 
-            if (storeTypeNameBase == SnowflakeStoreTypeNames.Varchar)
+            if (SnowflakeStoreTypeNames.TypeNameComparer.Equals(storeTypeNameBase, SnowflakeStoreTypeNames.Varchar))
             {
                 if (clrType is not null && clrType != typeof(string))
                 {
@@ -182,42 +204,60 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
                 return GetStringMapping(storeTypeName, mappingInfo.Size);
             }
 
-            if (storeTypeNameBase == SnowflakeStoreTypeNames.Number)
+            if (SnowflakeStoreTypeNames.FixedPointNumberTypeNames.Contains(storeTypeNameBase))
             {
+                bool isInteger = (!mappingInfo.Scale.HasValue || mappingInfo.Scale.Value == 0)
+                                 || (!mappingInfo.Scale.HasValue && !mappingInfo.Precision.HasValue)
+                                 || SnowflakeStoreTypeNames.IntegerTypeNames.Contains(storeTypeNameBase);
+
+                int? integerPrecision = mappingInfo.Precision ?? mappingInfo.Size;
+
                 if (clrType is null)
                 {
-                    bool isInteger = !mappingInfo.Scale.HasValue || mappingInfo.Scale.Value == 0;
                     if (isInteger)
                     {
-                        SignedIntegerType integerType = SnowflakeStoreTypeNames.GetSafeIntegerType(mappingInfo.Precision);
-                        return GetIntegerTypeMapping(storeTypeName, integerType);
+                        SignedIntegerType integerType = SnowflakeStoreTypeNames.GetSafeIntegerType(integerPrecision);
+                        return GetIntegerTypeMapping(mappingInfo.Precision, integerType);
                     }
 
-                    if (storeTypeName == _decimalTypeMapping.StoreType)
-                    {
-                        return _decimalTypeMapping;
-                    }
-
-                    return new DecimalTypeMapping(
+                    return new SnowflakeDecimalTypeMapping(
                         storeTypeName,
                         precision: mappingInfo.Precision,
                         scale: mappingInfo.Scale);
                 }
 
-                if (!mappingInfo.Scale.HasValue || mappingInfo.Scale.Value == 0)
+                if (isInteger)
                 {
                     RelationalTypeMapping? type = _integerNumberTypeMappings.FirstOrDefault(t => t.ClrType == clrType);
 
-                    return type?
-                        .WithPrecisionAndScale(mappingInfo.Precision, mappingInfo.Scale)
-                        .WithStoreTypeAndSize(storeTypeName, size: null);
+                    if (type is null)
+                    {
+                        return null;
+                    }
+
+                    switch (type.StoreTypePostfix)
+                    {
+                        case StoreTypePostfix.None:
+                            return type;
+                        case StoreTypePostfix.Size:
+                            return type.WithStoreTypeAndSize(type.StoreType, mappingInfo.Size ?? type.Size);
+                        case StoreTypePostfix.Precision:
+                            return type.WithPrecisionAndScale(
+                                integerPrecision,
+                                type.Scale);
+                        case StoreTypePostfix.PrecisionAndScale:
+                            return type.WithPrecisionAndScale(
+                                mappingInfo.Precision ?? type.Precision,
+                                mappingInfo.Scale ?? type.Scale);
+                        default:
+                            return null;
+                    }
                 }
                 else
                 {
                     RelationalTypeMapping? type = _rationalNumberTypeMappings.FirstOrDefault(t => t.ClrType == clrType);
                     return type?
-                        .WithPrecisionAndScale(mappingInfo.Precision, mappingInfo.Scale)
-                        .WithStoreTypeAndSize(storeTypeName, size: null);
+                        .WithPrecisionAndScale(mappingInfo.Precision, mappingInfo.Scale);
                 }
             }
         }
@@ -226,7 +266,27 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
         {
             if (_clrTypeMappings.TryGetValue(clrType, out RelationalTypeMapping? clrTypeMapping))
             {
-                return clrTypeMapping;
+                RelationalTypeMapping mapping = clrTypeMapping;
+
+                int? size;
+                int? precision;
+                int? scale = mappingInfo.Scale ?? mapping.Scale;
+                
+                if (mapping.StoreTypePostfix == StoreTypePostfix.Precision)
+                {
+                    // efcore gives us precision as size instead of precision when StoreTypePostfix is Precision
+                    size = mapping.Size;
+                    precision = mappingInfo.Precision ?? mappingInfo.Size ?? mapping.Precision;
+                }
+                else
+                {
+                    size = mappingInfo.Size ?? mapping.Size;
+                    precision = mappingInfo.Precision ?? mapping.Precision;
+                }
+
+                return mapping
+                    .WithPrecisionAndScale(precision, scale)
+                    .WithStoreTypeAndSize(mapping.StoreType, size);
             }
 
             if (clrType == typeof(string))
@@ -236,25 +296,25 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
 
             if (clrType == typeof(byte[]) && mappingInfo.ElementTypeMapping == null)
             {
-                return SnowflakeByteArrayTypeMapping.Default;
+                return SnowflakeByteArrayTypeMapping.Default.WithTypeMappingInfo(mappingInfo);
             }
         }
 
         return null;
     }
 
-    private RelationalTypeMapping GetIntegerTypeMapping(string storeTypeName, SignedIntegerType type)
+    private RelationalTypeMapping GetIntegerTypeMapping(int? precision, SignedIntegerType type)
     {
         switch (type)
         {
             case SignedIntegerType.Byte:
-                return new SnowflakeByteAsIntTypeMapping(storeTypeName);
+                return new SnowflakeByteAsIntTypeMapping(precision);
             case SignedIntegerType.Short:
-                return new ShortTypeMapping(storeTypeName);
+                return new SnowflakeShortTypeMapping(precision);
             case SignedIntegerType.Int:
-                return new IntTypeMapping(storeTypeName);
+                return new SnowflakeIntTypeMapping(precision);
             case SignedIntegerType.Long:
-                return new LongTypeMapping(storeTypeName);
+                return new SnowflakeLongTypeMapping(precision);
             default:
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
         }

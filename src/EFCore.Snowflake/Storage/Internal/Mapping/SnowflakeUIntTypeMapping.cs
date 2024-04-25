@@ -17,7 +17,10 @@ public class SnowflakeUIntTypeMapping : UIntTypeMapping
                     jsonValueReaderWriter: JsonUInt32ReaderWriter.Instance
                 ),
                 storeType: "NUMBER(10,0)",
-                dbType: System.Data.DbType.Int64))
+                dbType: System.Data.DbType.Int64,
+                precision: 10,
+                scale: SnowflakeStoreTypeNames.IntegerTypeScale,
+                storeTypePostfix: StoreTypePostfix.PrecisionAndScale))
     {
     }
 

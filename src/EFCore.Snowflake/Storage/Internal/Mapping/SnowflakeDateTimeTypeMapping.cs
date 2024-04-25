@@ -10,6 +10,10 @@ public class SnowflakeDateTimeTypeMapping : DateTimeTypeMapping
         SnowflakeStoreTypeNames.GetTimeType(SnowflakeStoreTypeNames.TimestampNtz, SnowflakeStoreTypeNames.DefaultTimePrecision),
         SnowflakeStoreTypeNames.DefaultTimePrecision);
 
+    public static SnowflakeDateTimeTypeMapping LtzMapping { get; } = new(
+        SnowflakeStoreTypeNames.GetTimeType(SnowflakeStoreTypeNames.TimestampLtz, SnowflakeStoreTypeNames.DefaultTimePrecision),
+        SnowflakeStoreTypeNames.DefaultTimePrecision);
+
     public SnowflakeDateTimeTypeMapping(string storeTypeName, int? precision)
         : this(
             new RelationalTypeMappingParameters(
@@ -19,7 +23,8 @@ public class SnowflakeDateTimeTypeMapping : DateTimeTypeMapping
                 ),
                 storeType: storeTypeName,
                 dbType: System.Data.DbType.DateTime,
-                precision: precision))
+                precision: precision,
+                storeTypePostfix: StoreTypePostfix.Precision))
     {
     }
 

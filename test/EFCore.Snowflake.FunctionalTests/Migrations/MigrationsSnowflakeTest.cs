@@ -24,6 +24,26 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
     protected override string NonDefaultCollation => "de-ci-pi";
 
     [ConditionalFact]
+    public virtual Task Add_column_with_precision_and_scale()
+        => Test(
+            builder => builder.Entity("Items").Property<int>("Id"),
+            builder => { },
+            builder =>
+            {
+                builder.Entity("Items").Property<decimal?>("Decimal")
+                    .HasPrecision(18, 2);
+            },
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                Assert.Equal(2, table.Columns.Count);
+
+                DatabaseColumn decimalColumn = Assert.Single(table.Columns, c => c.Name == "Decimal");
+                Assert.True(decimalColumn.IsNullable);
+                Assert.Equal("NUMBER(18,2)", decimalColumn.StoreType);
+            });
+
+    [ConditionalFact]
     public virtual Task Add_column_with_defaultValue_clr()
         => Test(
             builder => builder.Entity("PeopleClr").Property<int>("Id"),
@@ -77,8 +97,7 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
     {
         await Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_check_constraint());
     }
-
-
+    
     public override async Task Drop_check_constraint()
     {
         await Assert.ThrowsAsync<NotSupportedException>(() => base.Drop_check_constraint());

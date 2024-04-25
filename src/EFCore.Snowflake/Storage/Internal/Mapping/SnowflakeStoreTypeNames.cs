@@ -2,6 +2,34 @@ namespace EFCore.Snowflake.Storage.Internal.Mapping;
 
 internal static class SnowflakeStoreTypeNames
 {
+    public static readonly StringComparer TypeNameComparer = StringComparer.OrdinalIgnoreCase;
+
+    public static readonly HashSet<string> NumberTypeNames = new(TypeNameComparer)
+    {
+        Number,
+        "DECIMAL",
+        "DEC",
+        "NUMERIC",
+    };
+
+    public static readonly HashSet<string> IntegerTypeNames = new(TypeNameComparer)
+    {
+        "INT", "INTEGER", "BIGINT", "SMALLINT", "TINYINT", "BYTEINT"
+    };
+
+    public static readonly HashSet<string> FixedPointNumberTypeNames =
+        NumberTypeNames.Concat(IntegerTypeNames).ToHashSet(TypeNameComparer);
+
+    public static readonly Dictionary<string, string[]> AliasTypeNames = new(TypeNameComparer)
+    {
+        { Float, ["FLOAT4", "FLOAT8", "DOUBLE", "DOUBLE PRECISION", "REAL"] },
+        { Varchar, ["STRING", "TEXT"] },
+        { Binary, ["VARBINARY"] },
+        { TimestampNtz, ["DATETIME", "TIMESTAMP", "TIMESTAMPNTZ", "TIMESTAMP WITHOUT TIME ZONE"] },
+        { TimestampLtz, ["TIMESTAMPLTZ", "TIMESTAMP WITH LOCAL TIME ZONE"] },
+        { TimestampTz, ["TIMESTAMPTZ", "TIMESTAMP WITH TIME ZONE"] }
+    };
+
     public const string SingleChar = "VARCHAR(1)";
     public const string SingleByte = "BINARY(1)";
     public const string DefaultDecimal = "NUMBER(38,18)";
@@ -22,6 +50,8 @@ internal static class SnowflakeStoreTypeNames
     public const string TimestampLtz = "TIMESTAMP_LTZ";
     public const string TimestampTz = "TIMESTAMP_TZ";
 
+    public const int IntegerTypeScale = 0;
+
     public const int MaxByteFullDecimalDigits = 2;
     public const int MaxShortFullDecimalDigits = 4;
     public const int MaxIntFullDecimalDigits = 9;
@@ -36,12 +66,19 @@ internal static class SnowflakeStoreTypeNames
 
     public const int MaxDotNetDateTimePrecision = 7;
 
-    public static string GetIntegerTypeToHoldEverything(SignedIntegerType type)
+    public static int GetIntegerTypePrecisionToHoldEverything(SignedIntegerType type)
     {
         int maxFullyHoldable = GetMaxFullHoldableDecimalDigits(type);
         int requiredToStoreAllOptions = maxFullyHoldable + 1;
 
-        return GetIntegerType(requiredToStoreAllOptions);
+        return requiredToStoreAllOptions;
+    }
+
+    public static string GetIntegerTypeToHoldEverything(SignedIntegerType type)
+    {
+        int precision = GetIntegerTypePrecisionToHoldEverything(type);
+
+        return GetIntegerType(precision);
     }
 
     public static SignedIntegerType GetSafeIntegerType(int? decimals)
@@ -88,7 +125,7 @@ internal static class SnowflakeStoreTypeNames
             precision = MaxNumberSize;
         }
 
-        return GetDecimalType(precision, scale: 0);
+        return GetDecimalType(precision, scale: IntegerTypeScale);
     }
 
     public static string GetVarcharType(int size)
