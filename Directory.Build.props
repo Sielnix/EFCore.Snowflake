@@ -9,6 +9,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <ImplicitUsings>true</ImplicitUsings>
 
+    <Descripion>Snowflake database provider for Entity Framework Core.</Descripion>
     <PackageTags>Entity Framework Core;entity-framework-core;EF;Data;O/RM;EntityFramework;EntityFrameworkCore;EFCore;Snowflake</PackageTags>
     <Copyright>Copyright 2024 © Krzysztof Sielaff</Copyright>
     <Authors>Krzysztof Sielaff</Authors>
