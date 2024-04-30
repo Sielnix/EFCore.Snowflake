@@ -25,6 +25,7 @@ public class SnowflakeApiConsistencyTest(SnowflakeApiConsistencyTest.SnowflakeAp
             typeof(SnowflakeMigrationBuilderExtensions),
             typeof(SnowflakeModelBuilderExtensions),
             typeof(SnowflakePropertyBuilderExtensions),
+            typeof(SnowflakeSequenceBuilderExtensions),
             typeof(SnowflakeServiceCollectionExtensions),
         };
 
@@ -56,6 +57,16 @@ public class SnowflakeApiConsistencyTest(SnowflakeApiConsistencyTest.SnowflakeAp
                         null
                     )
                 },
+                // not supported by EF
+                //{
+                //    typeof(IReadOnlySequence), (
+                //        typeof(SnowflakeSequenceExtensions),
+                //        typeof(SnowflakeSequenceExtensions),
+                //        typeof(SnowflakeSequenceExtensions),
+                //        typeof(SnowflakeSequenceBuilderExtensions),
+                //        null
+                //    )
+                //}
             };
     }
 }

@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using EFCore.Snowflake.Design.Internal;
 using EFCore.Snowflake.Diagnostics.Internal;
 using EFCore.Snowflake.FunctionalTests.TestUtilities;
+using EFCore.Snowflake.Metadata.Internal;
 using EFCore.Snowflake.Properties.Internal;
 using EFCore.Snowflake.Scaffolding.Internal;
 using EFCore.Snowflake.Storage.Internal;
@@ -33,12 +35,13 @@ public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabase
     public void Create_sequences_with_facets()
         => Test([
             """
-                CREATE SEQUENCE "DefaultFacetsSequence";
+                CREATE SEQUENCE "DefaultFacetsSequence" NOORDER;
             """,
             """
                 CREATE SEQUENCE "db2"."CustomFacetsSequence"
                     START WITH 1
-                    INCREMENT BY 2;
+                    INCREMENT BY 2
+                    ORDER;
             """],
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
@@ -53,6 +56,7 @@ public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabase
                 Assert.Null(defaultSequence.StartValue);
                 Assert.Null(defaultSequence.MinValue);
                 Assert.Null(defaultSequence.MaxValue);
+                Assert.False((bool)defaultSequence[SnowflakeAnnotationNames.SequenceIsOrdered]!);
 
                 var customSequence = dbModel.Sequences.First(ds => ds.Name == "CustomFacetsSequence");
                 Assert.Equal("db2", customSequence.Schema);
@@ -63,6 +67,7 @@ public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabase
                 Assert.Equal(1, customSequence.StartValue);
                 Assert.Null(customSequence.MinValue);
                 Assert.Null(customSequence.MaxValue);
+                Assert.True((bool)customSequence[SnowflakeAnnotationNames.SequenceIsOrdered]!);
             },
 [
             """DROP SEQUENCE "DefaultFacetsSequence";""",
@@ -741,7 +746,7 @@ public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabase
         => Test(
             """
             CREATE TABLE "ValueGeneratedProperties" (
-                "Id" bigint AUTOINCREMENT START 1 INCREMENT 1,
+                "Id" bigint AUTOINCREMENT START 1 INCREMENT 1 ORDER,
                 "NoValueGenerationColumn" text,
                 "FixedDefaultValue" TIMESTAMP_NTZ NOT NULL DEFAULT ('2014-01-01 16:00:00'::TIMESTAMP_NTZ)
             )

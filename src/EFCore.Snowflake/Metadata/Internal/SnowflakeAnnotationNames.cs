@@ -1,5 +1,5 @@
 namespace EFCore.Snowflake.Metadata.Internal;
-internal static class SnowflakeAnnotationNames
+public static class SnowflakeAnnotationNames
 {
     public const string Prefix = "Snowflake:";
 
@@ -8,6 +8,8 @@ internal static class SnowflakeAnnotationNames
 
     public const string SequenceName = Prefix + "SequenceName";
     public const string SequenceSchema = Prefix + "SequenceSchema";
+    public const string SequenceNameSuffix = Prefix + "SequenceNameSuffix";
+    public const string SequenceIsOrdered = Prefix + "SequenceIsOrdered";
 
     public const string IdentityIncrement = Prefix + "IdentityIncrement";
     public const string IdentitySeed = Prefix + "IdentitySeed";

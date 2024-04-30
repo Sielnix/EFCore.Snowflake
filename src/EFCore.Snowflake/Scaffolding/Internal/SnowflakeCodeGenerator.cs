@@ -1,8 +1,8 @@
-using System.Reflection;
 using EFCore.Snowflake.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Scaffolding;
+using System.Reflection;
 
 namespace EFCore.Snowflake.Scaffolding.Internal;
 

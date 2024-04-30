@@ -1,5 +1,6 @@
 using EFCore.Snowflake.Metadata;
 using EFCore.Snowflake.Metadata.Internal;
+using EFCore.Snowflake.Utilities;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -8,6 +9,8 @@ namespace Microsoft.EntityFrameworkCore;
 
 public static class SnowflakeModelExtensions
 {
+    public const string DefaultSequenceNameSuffix = "Sequence";
+
     public static SnowflakeValueGenerationStrategy? GetValueGenerationStrategy(this IReadOnlyModel model)
     {
         return (SnowflakeValueGenerationStrategy?)model[SnowflakeAnnotationNames.ValueGenerationStrategy];
@@ -46,11 +49,39 @@ public static class SnowflakeModelExtensions
     public static ConfigurationSource? GetValueGenerationStrategyConfigurationSource(this IConventionModel model)
         => model.FindAnnotation(SnowflakeAnnotationNames.ValueGenerationStrategy)?.GetConfigurationSource();
 
+    public static string GetSequenceNameSuffix(this IReadOnlyModel model)
+        => (string?)model[SnowflakeAnnotationNames.SequenceNameSuffix]
+           ?? DefaultSequenceNameSuffix;
+
+    public static void SetSequenceNameSuffix(this IMutableModel model, string? name)
+    {
+        Check.NullButNotEmpty(name, nameof(name));
+
+        model.SetOrRemoveAnnotation(SnowflakeAnnotationNames.SequenceNameSuffix, name);
+    }
+
+    public static string? SetSequenceNameSuffix(
+        this IConventionModel model,
+        string? name,
+        bool fromDataAnnotation = false)
+        => (string?)model.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.SequenceNameSuffix,
+            Check.NullButNotEmpty(name, nameof(name)),
+            fromDataAnnotation)?.Value;
+
+    public static ConfigurationSource? GetSequenceNameSuffixConfigurationSource(this IConventionModel model)
+        => model.FindAnnotation(SnowflakeAnnotationNames.SequenceNameSuffix)?.GetConfigurationSource();
+
     public static long? SetIdentitySeed(this IConventionModel model, long? seed, bool fromDataAnnotation = false)
         => (long?)model.SetOrRemoveAnnotation(
             SnowflakeAnnotationNames.IdentitySeed,
             seed,
             fromDataAnnotation)?.Value;
+
+    public static void SetIdentitySeed(this IMutableModel model, long? seed)
+        => model.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.IdentitySeed,
+            seed);
 
     public static long GetIdentitySeed(this IReadOnlyModel model)
     {
@@ -69,6 +100,11 @@ public static class SnowflakeModelExtensions
 
     public static ConfigurationSource? GetIdentitySeedConfigurationSource(this IConventionModel model)
         => model.FindAnnotation(SnowflakeAnnotationNames.IdentitySeed)?.GetConfigurationSource();
+
+    public static void SetIdentityIncrement(this IMutableModel model, int? increment)
+        => model.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.IdentityIncrement,
+            increment);
 
     public static int? SetIdentityIncrement(
         this IConventionModel model,
@@ -100,4 +136,26 @@ public static class SnowflakeModelExtensions
 
     public static ConfigurationSource? GetIndexBehaviorConfigurationSource(this IConventionModel model)
         => model.FindAnnotation(SnowflakeAnnotationNames.IndexBehavior)?.GetConfigurationSource();
+
+    public static string? GetSequenceSchema(this IReadOnlyModel model)
+        => (string?)model[SnowflakeAnnotationNames.SequenceSchema];
+
+    public static void SetSequenceSchema(this IMutableModel model, string? value)
+    {
+        Check.NullButNotEmpty(value, nameof(value));
+
+        model.SetOrRemoveAnnotation(SnowflakeAnnotationNames.SequenceSchema, value);
+    }
+
+    public static string? SetSequenceSchema(
+        this IConventionModel model,
+        string? value,
+        bool fromDataAnnotation = false)
+        => (string?)model.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.SequenceSchema,
+            Check.NullButNotEmpty(value, nameof(value)),
+            fromDataAnnotation)?.Value;
+
+    public static ConfigurationSource? GetSequenceSchemaConfigurationSource(this IConventionModel model)
+        => model.FindAnnotation(SnowflakeAnnotationNames.SequenceSchema)?.GetConfigurationSource();
 }

@@ -1,6 +1,3 @@
-using System.Globalization;
-using System.Text;
-using EFCore.Snowflake.Extensions;
 using EFCore.Snowflake.Metadata;
 using EFCore.Snowflake.Metadata.Internal;
 using EFCore.Snowflake.Migrations.Operations;
@@ -11,6 +8,8 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Globalization;
+using System.Text;
 
 namespace EFCore.Snowflake.Migrations;
 
@@ -279,11 +278,14 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
 
     protected override void Generate(CreateSequenceOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
+        bool isOrdered = (bool)operation.GetAnnotation(SnowflakeAnnotationNames.SequenceIsOrdered).Value!;
+
         builder
             .Append("CREATE SEQUENCE ")
             .Append(DelimitIdentifier(operation.Name, operation.Schema)).AppendLine()
             .Append("START WITH ").Append(operation.StartValue.ToString(CultureInfo.InvariantCulture))
             .Append(" INCREMENT BY ").Append(operation.IncrementBy.ToString(CultureInfo.InvariantCulture))
+            .Append(" ").Append(isOrdered ? "ORDER" : "NOORDER")
             .AppendLine(StatementTerminator)
             .EndCommand();
     }
@@ -301,13 +303,29 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
 
     protected override void Generate(AlterSequenceOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
-        builder
-            .Append("ALTER SEQUENCE ")
-            .Append(DelimitIdentifier(operation.Name, operation.Schema))
-            .Append(" SET INCREMENT BY ")
-            .Append(operation.IncrementBy.ToString(CultureInfo.InvariantCulture))
-            .AppendLine(StatementTerminator)
-            .EndCommand();
+        if (operation.IncrementBy != operation.OldSequence.IncrementBy)
+        {
+            builder
+                .Append("ALTER SEQUENCE ")
+                .Append(DelimitIdentifier(operation.Name, operation.Schema))
+                .Append(" SET INCREMENT BY ")
+                .Append(operation.IncrementBy.ToString(CultureInfo.InvariantCulture))
+                .AppendLine(StatementTerminator)
+                .EndCommand();
+        }
+
+        bool oldIsOrdered = (bool)operation.OldSequence.GetAnnotation(SnowflakeAnnotationNames.SequenceIsOrdered).Value!;
+        bool newIsOrdered = (bool)operation.GetAnnotation(SnowflakeAnnotationNames.SequenceIsOrdered).Value!;
+
+        if (oldIsOrdered != newIsOrdered)
+        {
+            builder
+                .Append("ALTER SEQUENCE ")
+                .Append(DelimitIdentifier(operation.Name, operation.Schema))
+                .Append(" SET ").Append(newIsOrdered ? "ORDER" : "NOORDER")
+                .AppendLine(StatementTerminator)
+                .EndCommand();
+        }
     }
 
     protected override void Generate(RestartSequenceOperation operation, IModel? model, MigrationCommandListBuilder builder)

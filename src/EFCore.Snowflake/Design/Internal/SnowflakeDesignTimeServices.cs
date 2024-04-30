@@ -12,6 +12,7 @@ public class SnowflakeDesignTimeServices : IDesignTimeServices
     {
         serviceCollection.AddEntityFrameworkSnowflake();
         new EntityFrameworkRelationalDesignServicesBuilder(serviceCollection)
+            .TryAdd<IAnnotationCodeGenerator, SnowflakeAnnotationCodeGenerator>()
             .TryAdd<IDatabaseModelFactory, SnowflakeDatabaseModelFactory>()
             .TryAdd<IProviderConfigurationCodeGenerator, SnowflakeCodeGenerator>()
             .TryAddCoreServices();

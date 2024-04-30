@@ -133,7 +133,17 @@ public class SnowflakeDatabaseModelFactory : DatabaseModelFactory
         Func<string, string> schemaFilter)
     {
         string query = $@"
-SELECT *
+SELECT
+    SEQUENCE_NAME,
+    SEQUENCE_SCHEMA,
+    DATA_TYPE,
+    NUMERIC_PRECISION,
+    NUMERIC_SCALE,
+    ""INCREMENT"",
+    START_VALUE,
+    MINIMUM_VALUE,
+    MAXIMUM_VALUE,
+    CASE WHEN ORDERED = 'YES' THEN true ELSE false END AS ORDERED
 FROM INFORMATION_SCHEMA.""SEQUENCES""
 WHERE {schemaFilter("SEQUENCE_SCHEMA")}
 ";
@@ -174,7 +184,8 @@ WHERE {schemaFilter("SEQUENCE_SCHEMA")}
                 MinValue = minValue,
                 MaxValue = maxValue,
                 StoreType =
-                    $"{dataRow.GetFieldValue<string>("DATA_TYPE")}({dataRow.GetFieldValue<long>("NUMERIC_PRECISION")},{dataRow.GetFieldValue<long>("NUMERIC_SCALE")})"
+                    $"{dataRow.GetFieldValue<string>("DATA_TYPE")}({dataRow.GetFieldValue<long>("NUMERIC_PRECISION")},{dataRow.GetFieldValue<long>("NUMERIC_SCALE")})",
+                [SnowflakeAnnotationNames.SequenceIsOrdered] = dataRow.GetFieldValue<bool>("ORDERED")
             };
 
             result.Add(sequence);

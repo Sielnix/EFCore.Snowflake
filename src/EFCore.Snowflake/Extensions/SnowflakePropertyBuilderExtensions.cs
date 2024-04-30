@@ -80,6 +80,19 @@ public static class SnowflakePropertyBuilderExtensions
         bool fromDataAnnotation = false)
         => propertyBuilder.CanSetAnnotation(SnowflakeAnnotationNames.IdentityIncrement, increment, fromDataAnnotation);
 
+    public static ColumnBuilder UseIdentityColumn(
+        this ColumnBuilder columnBuilder,
+        long seed = 1,
+        int increment = 1)
+    {
+        var overrides = columnBuilder.Overrides;
+        overrides.SetValueGenerationStrategy(SnowflakeValueGenerationStrategy.AutoIncrement);
+        overrides.SetIdentitySeed(seed);
+        overrides.SetIdentityIncrement(increment);
+
+        return columnBuilder;
+    }
+
     public static PropertyBuilder UseIdentityColumn(
         this PropertyBuilder propertyBuilder,
         long seed = 1,
@@ -95,23 +108,42 @@ public static class SnowflakePropertyBuilderExtensions
         return propertyBuilder;
     }
 
-    public static PropertyBuilder UseIdentityColumn(
-        this PropertyBuilder propertyBuilder,
-        int seed,
-        int increment = 1)
-        => propertyBuilder.UseIdentityColumn((long)seed, increment);
-
     public static PropertyBuilder<TProperty> UseIdentityColumn<TProperty>(
         this PropertyBuilder<TProperty> propertyBuilder,
         long seed = 1,
         int increment = 1)
         => (PropertyBuilder<TProperty>)UseIdentityColumn((PropertyBuilder)propertyBuilder, seed, increment);
 
-    public static PropertyBuilder<TProperty> UseIdentityColumn<TProperty>(
+    public static PropertyBuilder UseSequence(
+        this PropertyBuilder propertyBuilder,
+        string? name = null,
+        string? schema = null)
+    {
+        Check.NullButNotEmpty(name, nameof(name));
+        Check.NullButNotEmpty(schema, nameof(schema));
+
+        var property = propertyBuilder.Metadata;
+
+        property.SetValueGenerationStrategy(SnowflakeValueGenerationStrategy.Sequence);
+        property.SetSequenceName(name);
+        property.SetSequenceSchema(schema);
+        property.SetIdentitySeed(null);
+        property.SetIdentityIncrement(null);
+
+        return propertyBuilder;
+    }
+
+    public static PropertyBuilder<TProperty> UseSequence<TProperty>(
         this PropertyBuilder<TProperty> propertyBuilder,
-        int seed,
+        string? name = null,
+        string? schema = null)
+        => (PropertyBuilder<TProperty>)UseSequence((PropertyBuilder)propertyBuilder, name, schema);
+
+    public static ColumnBuilder<TProperty> UseIdentityColumn<TProperty>(
+        this ColumnBuilder<TProperty> columnBuilder,
+        long seed = 1,
         int increment = 1)
-        => (PropertyBuilder<TProperty>)UseIdentityColumn((PropertyBuilder)propertyBuilder, (long)seed, increment);
+        => (ColumnBuilder<TProperty>)UseIdentityColumn((ColumnBuilder)columnBuilder, seed, increment);
 
     public static IConventionPropertyBuilder? HasValueGenerationStrategy(
         this IConventionPropertyBuilder propertyBuilder,

@@ -1,4 +1,3 @@
-using EFCore.Snowflake.Extensions;
 using EFCore.Snowflake.Metadata.Internal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;

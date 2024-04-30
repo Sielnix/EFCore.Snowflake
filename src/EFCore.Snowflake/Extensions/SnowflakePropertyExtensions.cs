@@ -12,6 +12,20 @@ namespace Microsoft.EntityFrameworkCore;
 
 public static class SnowflakePropertyExtensions
 {
+    public static string? GetSequenceName(this IReadOnlyProperty property)
+        => (string?)property[SnowflakeAnnotationNames.SequenceName];
+
+    public static string? GetSequenceName(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+    {
+        var annotation = property.FindAnnotation(SnowflakeAnnotationNames.SequenceName);
+        if (annotation != null)
+        {
+            return (string?)annotation.Value;
+        }
+
+        return property.FindSharedStoreObjectRootProperty(storeObject)?.GetSequenceName(storeObject);
+    }
+
     public static void SetSequenceName(this IMutableProperty property, string? name)
         => property.SetOrRemoveAnnotation(
             SnowflakeAnnotationNames.SequenceName,
@@ -28,6 +42,17 @@ public static class SnowflakePropertyExtensions
 
     public static ConfigurationSource? GetSequenceNameConfigurationSource(this IConventionProperty property)
         => property.FindAnnotation(SnowflakeAnnotationNames.SequenceName)?.GetConfigurationSource();
+
+    public static string? GetSequenceSchema(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+    {
+        var annotation = property.FindAnnotation(SnowflakeAnnotationNames.SequenceSchema);
+        if (annotation != null)
+        {
+            return (string?)annotation.Value;
+        }
+
+        return property.FindSharedStoreObjectRootProperty(storeObject)?.GetSequenceSchema(storeObject);
+    }
 
     public static void SetSequenceSchema(this IMutableProperty property, string? schema)
         => property.SetOrRemoveAnnotation(
@@ -220,6 +245,11 @@ public static class SnowflakePropertyExtensions
     {
         var modelStrategy = property.DeclaringType.Model.GetValueGenerationStrategy();
 
+        if (modelStrategy is SnowflakeValueGenerationStrategy.Sequence && IsCompatibleWithValueGeneration(property))
+        {
+            return modelStrategy.Value;
+        }
+
         return modelStrategy == SnowflakeValueGenerationStrategy.AutoIncrement
                && IsCompatibleWithValueGeneration(property, in storeObject, typeMappingSource)
             ? SnowflakeValueGenerationStrategy.AutoIncrement
@@ -327,6 +357,9 @@ public static class SnowflakePropertyExtensions
             seed,
             fromDataAnnotation)?.Value;
 
+    public static void SetIdentitySeed(this IMutableRelationalPropertyOverrides overrides, long? seed)
+        => overrides.SetOrRemoveAnnotation(SnowflakeAnnotationNames.IdentitySeed, seed);
+
     public static ConfigurationSource? GetIdentitySeedConfigurationSource(this IConventionProperty property)
         => property.FindAnnotation(SnowflakeAnnotationNames.IdentitySeed)?.GetConfigurationSource();
 
@@ -377,6 +410,9 @@ public static class SnowflakePropertyExtensions
             SnowflakeAnnotationNames.IdentityIncrement,
             increment,
             fromDataAnnotation)?.Value;
+
+    public static void SetIdentityIncrement(this IMutableRelationalPropertyOverrides overrides, int? increment)
+        => overrides.SetOrRemoveAnnotation(SnowflakeAnnotationNames.IdentityIncrement, increment);
 
     public static ConfigurationSource? GetIdentityIncrementConfigurationSource(this IConventionProperty property)
         => property.FindAnnotation(SnowflakeAnnotationNames.IdentityIncrement)?.GetConfigurationSource();

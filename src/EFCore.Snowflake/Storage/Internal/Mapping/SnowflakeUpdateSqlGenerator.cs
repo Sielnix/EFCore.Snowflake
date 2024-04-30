@@ -454,4 +454,10 @@ public class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
     {
         return ResultSetMapping.LastInResultSet | ResultSetMapping.ResultSetWithRowsAffectedOnly;
     }
+
+    public override void AppendObtainNextSequenceValueOperation(StringBuilder commandStringBuilder, string name, string? schema)
+    {
+        SqlGenerationHelper.DelimitIdentifier(commandStringBuilder, name, schema);
+        commandStringBuilder.Append(".NEXTVAL");
+    }
 }

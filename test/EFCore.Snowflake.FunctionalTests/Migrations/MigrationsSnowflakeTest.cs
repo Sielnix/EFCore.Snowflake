@@ -1,4 +1,5 @@
 using EFCore.Snowflake.FunctionalTests.TestUtilities;
+using EFCore.Snowflake.Metadata.Internal;
 using EFCore.Snowflake.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -388,6 +389,18 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
         await base.Add_required_primitve_collection_with_custom_default_value_sql_to_existing_table_core("'[3, 2, 1]'");
     }
 
+    [ConditionalFact]
+    public virtual Task Alter_sequence_is_ordered()
+        => Test(
+            builder => builder.HasSequence<int>("foo").IsOrdered(false),
+            builder => { },
+            builder => builder.HasSequence<int>("foo"),
+            model =>
+            {
+                var sequence = Assert.Single(model.Sequences);
+                Assert.Equal(false, sequence[SnowflakeAnnotationNames.SequenceIsOrdered]);
+            });
+
     public override Task Create_sequence_all_settings()
         => Test(
             builder => { },
@@ -404,7 +417,21 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
                 Assert.Equal("dbo2", sequence.Schema);
                 Assert.Equal(3, sequence.StartValue);
                 Assert.Equal(2, sequence.IncrementBy);
-                // ONLY CHANGE removed min,max, cyclic checks
+                // ONLY CHANGE removed min,max, cyclic checks, added is ordered check
+                Assert.Equal(true, sequence[SnowflakeAnnotationNames.SequenceIsOrdered]);
+            });
+
+
+    [ConditionalFact]
+    public virtual Task Create_sequence_not_ordered()
+        => Test(
+            builder => { },
+            builder => builder.HasSequence<long>("TestSequence").IsOrdered(false),
+            model =>
+            {
+                DatabaseSequence sequence = Assert.Single(model.Sequences);
+                Assert.Equal("TestSequence", sequence.Name);
+                Assert.Equal(false, sequence[SnowflakeAnnotationNames.SequenceIsOrdered]);
             });
 
     public override async Task Create_table_all_settings()
