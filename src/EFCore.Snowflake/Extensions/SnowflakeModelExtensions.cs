@@ -106,6 +106,30 @@ public static class SnowflakeModelExtensions
             SnowflakeAnnotationNames.IdentityIncrement,
             increment);
 
+    public static void SetIdentityIsOrdered(this IMutableModel model, bool? ordered)
+        => model.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.IdentityIsOrdered,
+            ordered);
+
+    public static bool? SetIdentityIsOrdered(
+        this IConventionModel model,
+        bool? ordered,
+        bool fromDataAnnotation = false)
+        => (bool?)model.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.IdentityIsOrdered,
+            ordered,
+            fromDataAnnotation)?.Value;
+
+    public static bool GetIdentityIsOrdered(this IReadOnlyModel model)
+    {
+        return (model is RuntimeModel)
+            ? throw new InvalidOperationException(CoreStrings.RuntimeModelMissingData)
+            : (bool?)model[SnowflakeAnnotationNames.IdentityIsOrdered] ?? true;
+    }
+
+    public static ConfigurationSource? GetIdentityIsOrderedConfigurationSource(this IConventionModel model)
+        => model.FindAnnotation(SnowflakeAnnotationNames.IdentityIsOrdered)?.GetConfigurationSource();
+
     public static int? SetIdentityIncrement(
         this IConventionModel model,
         int? increment,

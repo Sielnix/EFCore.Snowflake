@@ -757,9 +757,32 @@ public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabase
             {
                 var columns = dbModel.Tables.Single().Columns;
 
-                Assert.Equal(ValueGenerated.OnAdd, columns.Single(c => c.Name == "Id").ValueGenerated);
+                DatabaseColumn idColumn = columns.Single(c => c.Name == "Id");
+                Assert.Equal(ValueGenerated.OnAdd, idColumn.ValueGenerated);
+                Assert.Equal(true, idColumn[SnowflakeAnnotationNames.IdentityIsOrdered]);
+
                 Assert.Null(columns.Single(c => c.Name == "NoValueGenerationColumn").ValueGenerated);
                 Assert.Null(columns.Single(c => c.Name == "FixedDefaultValue").ValueGenerated);
+            },
+            @"DROP TABLE ""ValueGeneratedProperties""");
+
+    [Fact]
+    public void ValueGenerated_sets_order_to_false()
+        => Test(
+            """
+            CREATE TABLE "ValueGeneratedProperties" (
+                "Id" bigint AUTOINCREMENT START 1 INCREMENT 1 NOORDER
+            )
+            """,
+            Enumerable.Empty<string>(),
+            Enumerable.Empty<string>(),
+            dbModel =>
+            {
+                var columns = dbModel.Tables.Single().Columns;
+
+                DatabaseColumn idColumn = columns.Single();
+                Assert.Equal(ValueGenerated.OnAdd, idColumn.ValueGenerated);
+                Assert.Equal(false, idColumn[SnowflakeAnnotationNames.IdentityIsOrdered]);
             },
             @"DROP TABLE ""ValueGeneratedProperties""");
 

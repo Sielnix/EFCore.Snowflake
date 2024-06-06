@@ -521,6 +521,7 @@ WHERE
         CASE WHEN C.IS_IDENTITY = 'YES' THEN true ELSE false END AS IS_IDENTITY,
         C.IDENTITY_START,
         C.IDENTITY_INCREMENT,
+        CASE WHEN C.IDENTITY_ORDERED = 'YES' THEN true WHEN C.IDENTITY_ORDERED = 'NO' THEN false ELSE NULL END AS IDENTITY_ORDERED,
         C.COMMENT
     FROM INFORMATION_SCHEMA.COLUMNS C
     WHERE
@@ -554,6 +555,7 @@ WHERE
                 bool isIdentity = columnRecord.GetFieldValue<bool>("IS_IDENTITY");
                 long? identityStart = columnRecord.GetValueOrDefault("IDENTITY_START");
                 long? identityIncrement = columnRecord.GetValueOrDefault("IDENTITY_INCREMENT");
+                bool? identityOrdered = columnRecord.GetValueOrDefault<bool?>("IDENTITY_ORDERED");
                 string? comment = columnRecord.GetValueOrDefault<string>("COMMENT");
 
                 bool isSqlDefault = IsSqlDefault(columnDefault, dataType);
@@ -600,10 +602,9 @@ WHERE
                 {
                     column[SnowflakeAnnotationNames.ValueGenerationStrategy] =
                         SnowflakeValueGenerationStrategy.AutoIncrement;
-                    column[SnowflakeAnnotationNames.Identity] =
-                        GetIdentity(tableId, columnName, identityStart, identityIncrement);
                     column[SnowflakeAnnotationNames.IdentitySeed] = identityStart;
                     column[SnowflakeAnnotationNames.IdentityIncrement] = (int)identityIncrement!.Value;
+                    column[SnowflakeAnnotationNames.IdentityIsOrdered] = identityOrdered!.Value;
                 }
 
                 table.Columns.Add(column);

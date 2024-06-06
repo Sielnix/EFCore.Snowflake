@@ -13,6 +13,7 @@ public static class SnowflakeAnnotationNames
 
     public const string IdentityIncrement = Prefix + "IdentityIncrement";
     public const string IdentitySeed = Prefix + "IdentitySeed";
+    public const string IdentityIsOrdered = Prefix + "IdentityIsOrdered";
 
     public const string IndexBehavior = Prefix + "IndexBehavior";
 }

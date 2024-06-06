@@ -14,7 +14,7 @@ public class SnowflakeAnnotationCodeGenerator(AnnotationCodeGeneratorDependencie
 {
     private static readonly MethodInfo ModelUseIdentityColumnsMethodInfo
         = typeof(SnowflakeModelBuilderExtensions).GetRuntimeMethod(
-            nameof(SnowflakeModelBuilderExtensions.UseIdentityColumns), [typeof(ModelBuilder), typeof(long), typeof(int)])!;
+            nameof(SnowflakeModelBuilderExtensions.UseIdentityColumns), [typeof(ModelBuilder), typeof(long), typeof(int), typeof(bool)])!;
 
     private static readonly MethodInfo ModelUseKeySequencesMethodInfo
         = typeof(SnowflakeModelBuilderExtensions).GetRuntimeMethod(
@@ -26,7 +26,7 @@ public class SnowflakeAnnotationCodeGenerator(AnnotationCodeGeneratorDependencie
 
     private static readonly MethodInfo PropertyUseIdentityColumnsMethodInfo
         = typeof(SnowflakePropertyBuilderExtensions).GetRuntimeMethod(
-            nameof(SnowflakePropertyBuilderExtensions.UseIdentityColumn), [typeof(PropertyBuilder), typeof(long), typeof(int)])!;
+            nameof(SnowflakePropertyBuilderExtensions.UseIdentityColumn), [typeof(PropertyBuilder), typeof(long), typeof(int), typeof(bool)])!;
 
     private static readonly MethodInfo PropertyUseSequenceMethodInfo
         = typeof(SnowflakePropertyBuilderExtensions).GetRuntimeMethod(
@@ -137,13 +137,19 @@ public class SnowflakeAnnotationCodeGenerator(AnnotationCodeGeneratorDependencie
                 var increment = GetAndRemove<int?>(annotations, SnowflakeAnnotationNames.IdentityIncrement)
                     ?? model.FindAnnotation(SnowflakeAnnotationNames.IdentityIncrement)?.Value as int?
                     ?? 1;
+
+                bool ordered = GetAndRemove<bool?>(annotations, SnowflakeAnnotationNames.IdentityIsOrdered)
+                                ?? model.FindAnnotation(SnowflakeAnnotationNames.IdentityIsOrdered)?.Value as bool?
+                                ?? true;
+
                 return new MethodCallCodeFragment(
                     onModel ? ModelUseIdentityColumnsMethodInfo : PropertyUseIdentityColumnsMethodInfo,
-                    (seed, increment) switch
+                    (seed, increment, ordered) switch
                     {
-                        (1L, 1) => Array.Empty<object>(),
-                        (_, 1) => new object[] { seed },
-                        _ => new object[] { seed, increment }
+                        (1L, 1, true) => Array.Empty<object>(),
+                        (_, 1, true) => new object[] { seed },
+                        (_, _, true) => new object[] { seed, increment },
+                        _ => new object[] { seed, increment, ordered }
                     });
 
             case SnowflakeValueGenerationStrategy.Sequence:

@@ -21,6 +21,7 @@ public static class SnowflakeModelBuilderExtensions
             {
                 modelBuilder.HasIdentityColumnSeed(null, fromDataAnnotation);
                 modelBuilder.HasIdentityColumnIncrement(null, fromDataAnnotation);
+                modelBuilder.HasIdentityIsOrdered(null, fromDataAnnotation);
             }
 
             if (valueGenerationStrategy != SnowflakeValueGenerationStrategy.Sequence)
@@ -93,6 +94,26 @@ public static class SnowflakeModelBuilderExtensions
         bool fromDataAnnotation = false)
         => modelBuilder.CanSetAnnotation(SnowflakeAnnotationNames.IdentityIncrement, increment, fromDataAnnotation);
 
+    public static IConventionModelBuilder? HasIdentityIsOrdered(
+        this IConventionModelBuilder modelBuilder,
+        bool? ordered,
+        bool fromDataAnnotation = false)
+    {
+        if (modelBuilder.CanSetIdentityIsOrdered(ordered, fromDataAnnotation))
+        {
+            modelBuilder.Metadata.SetIdentityIsOrdered(ordered, fromDataAnnotation);
+            return modelBuilder;
+        }
+
+        return null;
+    }
+
+    public static bool CanSetIdentityIsOrdered(
+        this IConventionModelBuilder modelBuilder,
+        bool? ordered,
+        bool fromDataAnnotation = false)
+        => modelBuilder.CanSetAnnotation(SnowflakeAnnotationNames.IdentityIsOrdered, ordered, fromDataAnnotation);
+
     public static IConventionModelBuilder? HasIndexBehavior(
         this IConventionModelBuilder modelBuilder,
         SnowflakeIndexBehavior? indexBehavior,
@@ -129,17 +150,20 @@ public static class SnowflakeModelBuilderExtensions
     /// <param name="modelBuilder">The model builder.</param>
     /// <param name="seed">The value that is used for the very first row loaded into the table.</param>
     /// <param name="increment">The incremental value that is added to the identity value of the previous row that was loaded.</param>
+    /// <param name="ordered">Value that indicates if generated identity values should be always ordered</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     public static ModelBuilder UseIdentityColumns(
         this ModelBuilder modelBuilder,
         long seed = 1,
-        int increment = 1)
+        int increment = 1,
+        bool ordered = true)
     {
         var model = modelBuilder.Model;
 
         model.SetValueGenerationStrategy(SnowflakeValueGenerationStrategy.AutoIncrement);
         model.SetIdentitySeed(seed);
         model.SetIdentityIncrement(increment);
+        model.SetIdentityIsOrdered(ordered);
         model.SetSequenceSchema(null);
 
         return modelBuilder;

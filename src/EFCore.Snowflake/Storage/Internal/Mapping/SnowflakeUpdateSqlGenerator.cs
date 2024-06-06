@@ -44,11 +44,7 @@ public class SnowflakeUpdateSqlGenerator : UpdateAndSelectSqlGenerator
         var schema = command.Schema;
         var operations = command.ColumnModifications;
 
-        
-        //var readOperations = operations.Where(o => o.IsRead).ToList();
-
         AppendInsertCommand(commandStringBuilder, name, schema, operations);
-
         
         if (operations.Any(o => o.IsRead))
         {

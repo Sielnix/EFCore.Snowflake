@@ -1,6 +1,7 @@
 using EFCore.Snowflake.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore.Design.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +14,7 @@ public class SnowflakeDesignTimeServices : IDesignTimeServices
         serviceCollection.AddEntityFrameworkSnowflake();
         new EntityFrameworkRelationalDesignServicesBuilder(serviceCollection)
             .TryAdd<IAnnotationCodeGenerator, SnowflakeAnnotationCodeGenerator>()
+            .TryAdd<ICSharpRuntimeAnnotationCodeGenerator, SnowflakeCSharpRuntimeAnnotationCodeGenerator>()
             .TryAdd<IDatabaseModelFactory, SnowflakeDatabaseModelFactory>()
             .TryAdd<IProviderConfigurationCodeGenerator, SnowflakeCodeGenerator>()
             .TryAddCoreServices();

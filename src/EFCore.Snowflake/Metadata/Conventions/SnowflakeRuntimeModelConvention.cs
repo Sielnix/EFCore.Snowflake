@@ -30,6 +30,7 @@ public class SnowflakeRuntimeModelConvention(
         {
             annotations.Remove(SnowflakeAnnotationNames.IdentityIncrement);
             annotations.Remove(SnowflakeAnnotationNames.IdentitySeed);
+            annotations.Remove(SnowflakeAnnotationNames.IdentityIsOrdered);
 
             if (!annotations.ContainsKey(SnowflakeAnnotationNames.ValueGenerationStrategy))
             {

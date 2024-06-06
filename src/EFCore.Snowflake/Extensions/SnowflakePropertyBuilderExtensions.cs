@@ -80,15 +80,38 @@ public static class SnowflakePropertyBuilderExtensions
         bool fromDataAnnotation = false)
         => propertyBuilder.CanSetAnnotation(SnowflakeAnnotationNames.IdentityIncrement, increment, fromDataAnnotation);
 
+    public static IConventionPropertyBuilder? HasIdentityColumnIsOrdered(
+        this IConventionPropertyBuilder propertyBuilder,
+        bool? ordered,
+        bool fromDataAnnotation = false)
+    {
+        if (propertyBuilder.CanSetIdentityColumnIsOrdered(ordered, fromDataAnnotation))
+        {
+            propertyBuilder.Metadata.SetIdentityIsOrdered(ordered, fromDataAnnotation);
+            return propertyBuilder;
+        }
+
+        return null;
+    }
+
+    public static bool CanSetIdentityColumnIsOrdered(
+        this IConventionPropertyBuilder propertyBuilder,
+        bool? ordered,
+        bool fromDataAnnotation = false)
+        => propertyBuilder.CanSetAnnotation(SnowflakeAnnotationNames.IdentityIsOrdered, ordered, fromDataAnnotation);
+
+
     public static ColumnBuilder UseIdentityColumn(
         this ColumnBuilder columnBuilder,
         long seed = 1,
-        int increment = 1)
+        int increment = 1,
+        bool ordered = true)
     {
         var overrides = columnBuilder.Overrides;
         overrides.SetValueGenerationStrategy(SnowflakeValueGenerationStrategy.AutoIncrement);
         overrides.SetIdentitySeed(seed);
         overrides.SetIdentityIncrement(increment);
+        overrides.SetIdentityIsOrdered(ordered);
 
         return columnBuilder;
     }
@@ -96,12 +119,14 @@ public static class SnowflakePropertyBuilderExtensions
     public static PropertyBuilder UseIdentityColumn(
         this PropertyBuilder propertyBuilder,
         long seed = 1,
-        int increment = 1)
+        int increment = 1,
+        bool ordered = true)
     {
         var property = propertyBuilder.Metadata;
         property.SetValueGenerationStrategy(SnowflakeValueGenerationStrategy.AutoIncrement);
         property.SetIdentitySeed(seed);
         property.SetIdentityIncrement(increment);
+        property.SetIdentityIsOrdered(ordered);
         property.SetSequenceName(null);
         property.SetSequenceSchema(null);
 
@@ -111,8 +136,9 @@ public static class SnowflakePropertyBuilderExtensions
     public static PropertyBuilder<TProperty> UseIdentityColumn<TProperty>(
         this PropertyBuilder<TProperty> propertyBuilder,
         long seed = 1,
-        int increment = 1)
-        => (PropertyBuilder<TProperty>)UseIdentityColumn((PropertyBuilder)propertyBuilder, seed, increment);
+        int increment = 1,
+        bool ordered = true)
+        => (PropertyBuilder<TProperty>)UseIdentityColumn((PropertyBuilder)propertyBuilder, seed, increment, ordered);
 
     public static PropertyBuilder UseSequence(
         this PropertyBuilder propertyBuilder,
@@ -142,8 +168,9 @@ public static class SnowflakePropertyBuilderExtensions
     public static ColumnBuilder<TProperty> UseIdentityColumn<TProperty>(
         this ColumnBuilder<TProperty> columnBuilder,
         long seed = 1,
-        int increment = 1)
-        => (ColumnBuilder<TProperty>)UseIdentityColumn((ColumnBuilder)columnBuilder, seed, increment);
+        int increment = 1,
+        bool ordered = true)
+        => (ColumnBuilder<TProperty>)UseIdentityColumn((ColumnBuilder)columnBuilder, seed, increment, ordered);
 
     public static IConventionPropertyBuilder? HasValueGenerationStrategy(
         this IConventionPropertyBuilder propertyBuilder,
@@ -158,6 +185,7 @@ public static class SnowflakePropertyBuilderExtensions
             {
                 propertyBuilder.HasIdentityColumnSeed(null, fromDataAnnotation);
                 propertyBuilder.HasIdentityColumnIncrement(null, fromDataAnnotation);
+                propertyBuilder.HasIdentityColumnIsOrdered(null, fromDataAnnotation);
                 propertyBuilder.HasSequence(null, null, fromDataAnnotation);
             }
 
@@ -165,6 +193,7 @@ public static class SnowflakePropertyBuilderExtensions
             {
                 propertyBuilder.HasIdentityColumnSeed(null, fromDataAnnotation);
                 propertyBuilder.HasIdentityColumnIncrement(null, fromDataAnnotation);
+                propertyBuilder.HasIdentityColumnIsOrdered(null, fromDataAnnotation);
             }
 
             return propertyBuilder;

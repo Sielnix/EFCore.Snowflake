@@ -402,6 +402,48 @@ public static class SnowflakePropertyExtensions
             SnowflakeAnnotationNames.IdentityIncrement,
             increment);
 
+    public static bool? GetIdentityIsOrdered(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+    {
+        if (property is RuntimeProperty)
+        {
+            throw new InvalidOperationException(CoreStrings.RuntimeModelMissingData);
+        }
+
+        var @override = property.FindOverrides(storeObject)?.FindAnnotation(SnowflakeAnnotationNames.IdentityIsOrdered);
+        if (@override != null)
+        {
+            return (bool?)@override.Value;
+        }
+
+        var annotation = property.FindAnnotation(SnowflakeAnnotationNames.IdentityIsOrdered);
+        if (annotation != null)
+        {
+            return (bool?)annotation.Value;
+        }
+
+        var sharedProperty = property.FindSharedStoreObjectRootProperty(storeObject);
+        return sharedProperty == null
+            ? property.DeclaringType.Model.GetIdentityIsOrdered()
+            : sharedProperty.GetIdentityIsOrdered(storeObject);
+    }
+
+    public static void SetIdentityIsOrdered(this IMutableProperty property, bool? ordered)
+        => property.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.IdentityIsOrdered,
+            ordered);
+
+    public static bool? SetIdentityIsOrdered(
+        this IConventionProperty property,
+        bool? ordered,
+        bool fromDataAnnotation = false)
+        => (bool?)property.SetOrRemoveAnnotation(
+            SnowflakeAnnotationNames.IdentityIsOrdered,
+            ordered,
+            fromDataAnnotation)?.Value;
+
+    public static ConfigurationSource? GetIdentityIsOrderedConfigurationSource(this IConventionProperty property)
+        => property.FindAnnotation(SnowflakeAnnotationNames.IdentityIsOrdered)?.GetConfigurationSource();
+
     public static int? SetIdentityIncrement(
         this IConventionProperty property,
         int? increment,
@@ -413,6 +455,19 @@ public static class SnowflakePropertyExtensions
 
     public static void SetIdentityIncrement(this IMutableRelationalPropertyOverrides overrides, int? increment)
         => overrides.SetOrRemoveAnnotation(SnowflakeAnnotationNames.IdentityIncrement, increment);
+
+    public static void SetIdentityIsOrdered(this IMutableRelationalPropertyOverrides overrides, bool? ordered)
+        => overrides.SetOrRemoveAnnotation(SnowflakeAnnotationNames.IdentityIsOrdered, ordered);
+
+    public static ConfigurationSource? GetIdentityIsOrderedConfigurationSource(
+        this IConventionProperty property,
+        in StoreObjectIdentifier storeObject)
+        => property.FindOverrides(storeObject)?.GetIdentityIsOrderedConfigurationSource();
+
+    public static ConfigurationSource? GetIdentityIsOrderedConfigurationSource(
+        this IConventionRelationalPropertyOverrides overrides)
+        => overrides.FindAnnotation(SnowflakeAnnotationNames.IdentityIsOrdered)?.GetConfigurationSource();
+
 
     public static ConfigurationSource? GetIdentityIncrementConfigurationSource(this IConventionProperty property)
         => property.FindAnnotation(SnowflakeAnnotationNames.IdentityIncrement)?.GetConfigurationSource();

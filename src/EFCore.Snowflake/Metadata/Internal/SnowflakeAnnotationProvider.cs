@@ -26,14 +26,17 @@ internal class SnowflakeAnnotationProvider : RelationalAnnotationProvider
         {
             long? seed = identityProperty.GetIdentitySeed(table);
             int? increment = identityProperty.GetIdentityIncrement(table);
+            bool? order = identityProperty.GetIdentityIsOrdered(table);
 
             yield return new Annotation(
                 SnowflakeAnnotationNames.ValueGenerationStrategy,
                 SnowflakeValueGenerationStrategy.AutoIncrement);
 
+            Console.WriteLine("TUE");
+            string orderStr = (order ?? true) ? "ORDER" : "NOORDER";
             yield return new Annotation(
                 SnowflakeAnnotationNames.Identity,
-                FormattableString.Invariant($"START {seed ?? 1} INCREMENT {increment ?? 1}"));
+                FormattableString.Invariant($"START {seed ?? 1} INCREMENT {increment ?? 1} {orderStr}"));
         }
     }
 }

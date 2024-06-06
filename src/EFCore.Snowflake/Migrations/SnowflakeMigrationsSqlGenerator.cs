@@ -110,6 +110,31 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
             ThrowNoStoredCalculatedColumns();
         }
 
+        if (operation.Collation != operation.OldColumn.Collation)
+        {
+            throw new NotSupportedException(
+                "Collation change is not supported in Snowflake. Column has to be dropped and recreated with different collation");
+        }
+
+        bool oldHasIdentity = IsIdentity(operation.OldColumn);
+        bool newHasIdentity = IsIdentity(operation);
+        if (newHasIdentity && !oldHasIdentity)
+        {
+            throw new InvalidOperationException("To add AutoIncrement property to a column, the column needs to be dropped and recreated.");
+        }
+
+        if (oldHasIdentity && !newHasIdentity)
+        {
+            builder
+                .Append("ALTER TABLE ")
+                .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(" ALTER COLUMN ")
+                .Append(DelimitIdentifier(operation.Name))
+                .Append("DROP DEFAULT")
+                .Append(StatementTerminator)
+                .EndCommand();
+        }
+
         if (operation.ComputedColumnSql != operation.OldColumn.ComputedColumnSql)
         {
             // drop and recreate column if it is computed
@@ -140,13 +165,7 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
 
             return;
         }
-
-        if (operation.Collation != operation.OldColumn.Collation)
-        {
-            throw new NotSupportedException(
-                "Collation change is not supported in Snowflake. Column has to be dropped and recreated with different collation");
-        }
-
+        
         if (operation.IsNullable != operation.OldColumn.IsNullable)
         {
             if (!operation.IsNullable && (operation.DefaultValueSql is not null || operation.DefaultValue is not null))
@@ -472,14 +491,18 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
             builder.Append(" AUTOINCREMENT ");
             if (string.IsNullOrEmpty(identity))
             {
-                builder.Append(" START 1 INCREMENT 1");
+                builder.Append(" START 1 INCREMENT 1 ORDER");
             }
             else
             {
                 builder.Append(identity);
-            }
 
-            builder.Append(" ORDER");
+                if (!identity.Contains("ORDER", StringComparison.OrdinalIgnoreCase))
+                {
+                    // backward compatibility. Add order if it's not set
+                    builder.Append(" ORDER");
+                }
+            }
         }
 
         if (operation.Comment != null)
@@ -590,4 +613,9 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
             $"Index behavior is set to {indexBehavior}, any index operations are blocked since Snowflake doesn't support indexes. " +
             $"If you want to ignore all index definitions set call HasIndexBehavior(SnowflakeIndexBehavior.Ignore) on model");
     }
+
+    private static bool IsIdentity(ColumnOperation operation)
+        => operation[SnowflakeAnnotationNames.Identity] != null
+           || operation[SnowflakeAnnotationNames.ValueGenerationStrategy] as SnowflakeValueGenerationStrategy?
+           == SnowflakeValueGenerationStrategy.AutoIncrement;
 }

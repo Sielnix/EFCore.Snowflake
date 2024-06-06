@@ -45,6 +45,25 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
             });
 
     [ConditionalFact]
+    public virtual Task Create_column_with_unordered_identity()
+        => Test(
+            builder => { },
+            builder => { },
+            builder =>
+            {
+                builder.Entity("Items").Property<int>("Id").UseIdentityColumn(ordered: false);
+            },
+            model =>
+            {
+                DatabaseTable table = Assert.Single(model.Tables);
+
+                DatabaseColumn idColumn = Assert.Single(table.Columns);
+
+                Assert.Equal("Id", idColumn.Name);
+                Assert.Equal(false, idColumn[SnowflakeAnnotationNames.IdentityIsOrdered]);
+            });
+
+    [ConditionalFact]
     public virtual Task Add_column_with_defaultValue_clr()
         => Test(
             builder => builder.Entity("PeopleClr").Property<int>("Id"),
@@ -89,6 +108,11 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
                 Assert.Equal(42.1, heightColumn.DefaultValue);
             });
 
+    public override async Task Add_primary_key_int()
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(() => base.Add_primary_key_int());
+    }
+    
     public override async Task Add_check_constraint_with_name()
     {
         await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_check_constraint_with_name());
