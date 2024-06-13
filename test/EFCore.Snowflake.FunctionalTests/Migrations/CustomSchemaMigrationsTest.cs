@@ -1,4 +1,3 @@
-using EFCore.Snowflake.Extensions;
 using EFCore.Snowflake.FunctionalTests.TestUtilities;
 using EFCore.Snowflake.Storage;
 using Microsoft.EntityFrameworkCore;

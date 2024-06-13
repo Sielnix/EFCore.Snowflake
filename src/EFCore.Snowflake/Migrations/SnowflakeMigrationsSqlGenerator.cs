@@ -266,12 +266,34 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
         MigrationCommandListBuilder builder,
         bool terminate = true)
     {
-        base.Generate(operation, model, builder, terminate: false);
+        SnowflakeTableType tableType = GetTableType(operation);
 
+        string tableTypeQuery = tableType switch
+        {
+            SnowflakeTableType.Permanent => string.Empty,
+            SnowflakeTableType.Transient => " TRANSIENT",
+            _ => throw new ArgumentOutOfRangeException(nameof(tableType), tableType, null)
+        };
+
+        builder
+            .Append("CREATE")
+            .Append(tableTypeQuery)
+            .Append(" TABLE ")
+            .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+            .AppendLine(" (");
+
+        using (builder.Indent())
+        {
+            CreateTableColumns(operation, model, builder);
+            CreateTableConstraints(operation, model, builder);
+            builder.AppendLine();
+        }
+
+        builder.Append(")");
+        
         if (operation.Comment != null)
         {
             builder
-                .AppendLine()
                 .Append(" COMMENT = ")
                 .Append(GenerateSqlLiteral(operation.Comment));
         }
@@ -354,6 +376,12 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
 
     protected override void Generate(AlterTableOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
+        if (GetTableType(operation) != GetTableType(operation.OldTable))
+        {
+            throw new InvalidOperationException(
+                "To change the table table, the table needs to be dropped and recreated.");
+        }
+
         if (operation.Comment != operation.OldTable.Comment)
         {
             builder
@@ -375,6 +403,8 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
                 .AppendLine(StatementTerminator)
                 .EndCommand();
         }
+
+        base.Generate(operation, model, builder);
     }
 
     protected override void Generate(DropCheckConstraintOperation operation, IModel? model, MigrationCommandListBuilder builder)
@@ -618,4 +648,17 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
         => operation[SnowflakeAnnotationNames.Identity] != null
            || operation[SnowflakeAnnotationNames.ValueGenerationStrategy] as SnowflakeValueGenerationStrategy?
            == SnowflakeValueGenerationStrategy.AutoIncrement;
+
+    private static SnowflakeTableType GetTableType(TableOperation operation)
+    {
+        object? tableType = operation[SnowflakeAnnotationNames.TableType];
+        if (tableType is null)
+        {
+            // this should not be here, annotation always should be set
+            // probably bug in efcore, to be removed after fixing https://github.com/dotnet/efcore/issues/34032
+            return SnowflakeTableType.Permanent;
+        }
+
+        return (SnowflakeTableType)tableType;
+    }
 }

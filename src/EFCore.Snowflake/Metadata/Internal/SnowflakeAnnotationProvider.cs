@@ -32,11 +32,21 @@ internal class SnowflakeAnnotationProvider : RelationalAnnotationProvider
                 SnowflakeAnnotationNames.ValueGenerationStrategy,
                 SnowflakeValueGenerationStrategy.AutoIncrement);
 
-            Console.WriteLine("TUE");
             string orderStr = (order ?? true) ? "ORDER" : "NOORDER";
             yield return new Annotation(
                 SnowflakeAnnotationNames.Identity,
                 FormattableString.Invariant($"START {seed ?? 1} INCREMENT {increment ?? 1} {orderStr}"));
         }
     }
+
+    public override IEnumerable<IAnnotation> For(ITable table, bool designTime)
+    {
+        if (!designTime)
+        {
+            yield break;
+        }
+
+        IEntityType entityType = (IEntityType)table.EntityTypeMappings.First().TypeBase;
+
+        yield return new Annotation(SnowflakeAnnotationNames.TableType, entityType.GetTableType()); }
 }

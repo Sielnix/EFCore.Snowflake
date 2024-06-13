@@ -6,6 +6,8 @@ public static class SnowflakeAnnotationNames
     public const string ValueGenerationStrategy = Prefix + "ValueGenerationStrategy";
     public const string Identity = Prefix + "Identity";
 
+    public const string TableType = Prefix + "TableType";
+
     public const string SequenceName = Prefix + "SequenceName";
     public const string SequenceSchema = Prefix + "SequenceSchema";
     public const string SequenceNameSuffix = Prefix + "SequenceNameSuffix";

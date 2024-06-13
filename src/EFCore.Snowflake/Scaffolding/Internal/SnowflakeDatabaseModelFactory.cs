@@ -240,7 +240,7 @@ WHERE {schemaFilter("SEQUENCE_SCHEMA")}
 
         string query = @$"
 SELECT 
-    TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE, COMMENT
+    TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE, IS_TRANSIENT, COMMENT
 FROM
     INFORMATION_SCHEMA.TABLES
 WHERE
@@ -263,6 +263,7 @@ WHERE
                 comment = reader.GetString("COMMENT");
             }
 
+            bool isTable = tableType == "BASE TABLE";
             DatabaseTable table = tableType switch
             {
                 "BASE TABLE" => new DatabaseTable(),
@@ -274,6 +275,17 @@ WHERE
             table.Name = tableName;
             table.Schema = schema;
             table.Comment = comment;
+
+            if (isTable)
+            {
+                SnowflakeTableType innerTableType = SnowflakeTableType.Permanent;
+                if (string.Equals(reader.GetString("IS_TRANSIENT"), "YES", StringComparison.OrdinalIgnoreCase))
+                {
+                    innerTableType = SnowflakeTableType.Transient;
+                }
+
+                table[SnowflakeAnnotationNames.TableType] = innerTableType;
+            }
 
             tables.Add(table);
         }

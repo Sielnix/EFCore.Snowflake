@@ -38,4 +38,18 @@ public class SnowflakeRuntimeModelConvention(
             }
         }
     }
+
+    protected override void ProcessEntityTypeAnnotations(
+        Dictionary<string, object?> annotations,
+        IEntityType entityType,
+        RuntimeEntityType runtimeEntityType,
+        bool runtime)
+    {
+        base.ProcessEntityTypeAnnotations(annotations, entityType, runtimeEntityType, runtime);
+
+        if (!runtime)
+        {
+            annotations.Remove(SnowflakeAnnotationNames.TableType);
+        }
+    }
 }

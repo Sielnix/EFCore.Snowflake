@@ -18,6 +18,7 @@ public class SnowflakeConventionSetBuilder(
         set.Add(new SnowflakeValueGenerationStrategyConvention(Dependencies, RelationalDependencies));
         set.Add(new SnowflakeIndexHandlingConvention());
         set.Add(new SnowflakeSequenceOrderConvention());
+        set.Add(new SnowflakeTableTypeConvention());
 
         set.Replace<CascadeDeleteConvention>(new SnowflakeOnDeleteConvention(Dependencies));
 

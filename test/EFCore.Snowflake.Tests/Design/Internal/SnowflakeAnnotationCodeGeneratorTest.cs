@@ -13,7 +13,7 @@ namespace EFCore.Snowflake.Tests.Design.Internal;
 public class SnowflakeAnnotationCodeGeneratorTest
 {
     [ConditionalFact]
-    public void GenerateFluentApi_IKey_works_when_clustered()
+    public void GenerateFluentApi_sequence_works_when_not_ordered()
     {
         var generator = CreateGenerator();
 

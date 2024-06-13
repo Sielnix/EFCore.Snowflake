@@ -64,4 +64,15 @@ internal class SnowflakeCSharpRuntimeAnnotationCodeGenerator(
 
         base.Generate(overrides, parameters);
     }
+
+    public override void Generate(ITable table, CSharpRuntimeAnnotationCodeGeneratorParameters parameters)
+    {
+        if (!parameters.IsRuntime)
+        {
+            var annotations = parameters.Annotations;
+            annotations.Remove(SnowflakeAnnotationNames.TableType);
+        }
+
+        base.Generate(table, parameters);
+    }
 }

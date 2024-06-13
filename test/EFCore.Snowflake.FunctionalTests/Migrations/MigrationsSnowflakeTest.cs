@@ -1,4 +1,5 @@
 using EFCore.Snowflake.FunctionalTests.TestUtilities;
+using EFCore.Snowflake.Metadata;
 using EFCore.Snowflake.Metadata.Internal;
 using EFCore.Snowflake.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore;
@@ -458,6 +459,27 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
                 Assert.Equal(false, sequence[SnowflakeAnnotationNames.SequenceIsOrdered]);
             });
 
+    [ConditionalFact]
+    public virtual Task Create_table_types()
+        => Test(
+            builder => { },
+            builder =>
+            {
+                builder.Entity("DefaultTable", e => e.Property<int>("Id"));
+                builder.Entity("PermanentTable", e => e.ToTable(t => t.IsPermanent()).Property<int>("Id"));
+                builder.Entity("TransientTable", e => e.ToTable(t => t.IsTransient()).Property<int>("Id"));
+            },
+            model =>
+            {
+                DatabaseTable defaultTable = Assert.Single(model.Tables, t => t.Name == "DefaultTable");
+                Assert.Equal(SnowflakeTableType.Permanent, defaultTable[SnowflakeAnnotationNames.TableType]);
+
+                DatabaseTable permanentTable = Assert.Single(model.Tables, t => t.Name == "PermanentTable");
+                Assert.Equal(SnowflakeTableType.Permanent, permanentTable[SnowflakeAnnotationNames.TableType]);
+
+                DatabaseTable transientTable = Assert.Single(model.Tables, t => t.Name == "TransientTable");
+                Assert.Equal(SnowflakeTableType.Transient, transientTable[SnowflakeAnnotationNames.TableType]);
+            });
     public override async Task Create_table_all_settings()
     {
         var intStoreType = TypeMappingSource.FindMapping(typeof(int))!.StoreType;

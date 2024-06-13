@@ -36,6 +36,18 @@ public class SnowflakeAnnotationCodeGenerator(AnnotationCodeGeneratorDependencie
         = typeof(SnowflakeSequenceBuilderExtensions).GetRuntimeMethod(
             nameof(SnowflakeSequenceBuilderExtensions.IsOrdered), [typeof(SequenceBuilder), typeof(bool)])!;
 
+    private static readonly MethodInfo EntityTypeToTableMethodInfo
+        = typeof(RelationalEntityTypeBuilderExtensions).GetRuntimeMethod(
+            nameof(RelationalEntityTypeBuilderExtensions.ToTable), [typeof(EntityTypeBuilder), typeof(string)])!;
+
+    private static readonly MethodInfo TableIsPermanentMethodInfo
+        = typeof(SnowflakeTableBuilderExtensions).GetRuntimeMethod(
+            nameof(SnowflakeTableBuilderExtensions.IsPermanent), [typeof(TableBuilder)])!;
+
+    private static readonly MethodInfo TableIsTransientMethodInfo
+        = typeof(SnowflakeTableBuilderExtensions).GetRuntimeMethod(
+            nameof(SnowflakeTableBuilderExtensions.IsTransient), [typeof(TableBuilder)])!;
+
     protected override bool IsHandledByConvention(IModel model, IAnnotation annotation)
     {
         if (annotation.Name == SnowflakeAnnotationNames.ValueGenerationStrategy)
@@ -60,6 +72,16 @@ public class SnowflakeAnnotationCodeGenerator(AnnotationCodeGeneratorDependencie
         }
 
         return base.IsHandledByConvention(sequence, annotation);
+    }
+
+    protected override bool IsHandledByConvention(IEntityType entityType, IAnnotation annotation)
+    {
+        if (annotation.Name == SnowflakeAnnotationNames.TableType)
+        {
+            return ((SnowflakeTableType)annotation.Value!) == SnowflakeTableType.Permanent;
+        }
+
+        return base.IsHandledByConvention(entityType, annotation);
     }
 
     public override IReadOnlyList<MethodCallCodeFragment> GenerateFluentApiCalls(IModel model, IDictionary<string, IAnnotation> annotations)
@@ -96,6 +118,33 @@ public class SnowflakeAnnotationCodeGenerator(AnnotationCodeGeneratorDependencie
         }
 
         return base.GenerateFluentApi(sequence, annotation);
+    }
+
+    protected override MethodCallCodeFragment? GenerateFluentApi(IEntityType entityType, IAnnotation annotation)
+    {
+        if (annotation.Name == SnowflakeAnnotationNames.TableType)
+        {
+            SnowflakeTableType tableType = (SnowflakeTableType)annotation.Value!;
+
+            MethodInfo methodCall = tableType switch
+            {
+                SnowflakeTableType.Permanent => TableIsPermanentMethodInfo,
+                SnowflakeTableType.Transient => TableIsTransientMethodInfo,
+                _ => throw new ArgumentOutOfRangeException(nameof(tableType), tableType, null)
+            };
+
+            // ToTable(tb => tb.IsTransient())
+            MethodCallCodeFragment toTableTypeCall = new(
+                EntityTypeToTableMethodInfo,
+                new NestedClosureCodeFragment(
+                    "tb",
+                    new MethodCallCodeFragment(
+                        methodCall)));
+
+            return toTableTypeCall;
+        }
+
+        return base.GenerateFluentApi(entityType, annotation);
     }
 
     private static MethodCallCodeFragment? GenerateValueGenerationStrategy(

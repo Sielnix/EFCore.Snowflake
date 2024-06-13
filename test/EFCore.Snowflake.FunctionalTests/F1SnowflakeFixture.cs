@@ -91,6 +91,8 @@ public class F1ULongSnowflakeFixture : F1SnowflakeFixtureBase<ulong>
 
 public class F1SnowflakeFixture : F1SnowflakeFixtureBase<byte[]>
 {
+    //protected override bool UsePooling => false;
+
     protected override void BuildModelExternal(ModelBuilder modelBuilder)
     {
         base.BuildModelExternal(modelBuilder);

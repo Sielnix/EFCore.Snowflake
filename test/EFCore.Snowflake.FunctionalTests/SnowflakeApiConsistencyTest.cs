@@ -49,6 +49,15 @@ public class SnowflakeApiConsistencyTest(SnowflakeApiConsistencyTest.SnowflakeAp
                     )
                 },
                 {
+                    typeof(IReadOnlyEntityType), (
+                        typeof(SnowflakeEntityTypeExtensions),
+                        typeof(SnowflakeEntityTypeExtensions),
+                        typeof(SnowflakeEntityTypeExtensions),
+                        typeof(SnowflakeEntityTypeBuilderExtensions),
+                        null
+                    )
+                },
+                {
                     typeof(IReadOnlyProperty), (
                         typeof(SnowflakePropertyExtensions),
                         typeof(SnowflakePropertyExtensions),

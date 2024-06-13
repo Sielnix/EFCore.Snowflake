@@ -2,6 +2,7 @@ using System.Diagnostics;
 using EFCore.Snowflake.Design.Internal;
 using EFCore.Snowflake.Diagnostics.Internal;
 using EFCore.Snowflake.FunctionalTests.TestUtilities;
+using EFCore.Snowflake.Metadata;
 using EFCore.Snowflake.Metadata.Internal;
 using EFCore.Snowflake.Properties.Internal;
 using EFCore.Snowflake.Scaffolding.Internal;
@@ -827,6 +828,34 @@ CREATE TABLE "ColumnsWithCollation" (
                 Assert.Equal("de-ci-pi", columns.Single(c => c.Name == "NonDefaultCollation").Collation);
             },
             """DROP TABLE "ColumnsWithCollation";""");
+
+    [ConditionalFact]
+    public void Table_type_is_set()
+        => Test([
+                """
+                CREATE TRANSIENT TABLE "TransientTable" (
+                    "Id" int PRIMARY KEY
+                );
+                """,
+                """
+                CREATE TABLE "PermanentTable" (
+                    "Id" int PRIMARY KEY
+                );
+                """],
+            [],
+            [],
+            dbModel =>
+            {
+                DatabaseTable permanentTable = Assert.Single(dbModel.Tables, t => t.Name == "PermanentTable");
+                Assert.Equal(SnowflakeTableType.Permanent, permanentTable[SnowflakeAnnotationNames.TableType]);
+
+                DatabaseTable transientTable = Assert.Single(dbModel.Tables, t => t.Name == "TransientTable");
+                Assert.Equal(SnowflakeTableType.Transient, transientTable[SnowflakeAnnotationNames.TableType]);
+            },
+            [
+                """DROP TABLE "TransientTable";""",
+                """DROP TABLE "PermanentTable";"""
+            ]);
 
     #endregion
 
