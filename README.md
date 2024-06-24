@@ -27,6 +27,10 @@ public class Startup
 
 If you wish to create model from existing Snowflake database, then follow [this](https://learn.microsoft.com/en-us/ef/core/cli/dotnet#dotnet-ef-dbcontext-scaffold) steps. Provider name is `EFCore.Snowflake`.  Ensure you have ef tools installed (`dotnet tool install --global dotnet-ef`).
 
+## Database generation
+
+Please be aware, that Snowflake default naming convention is UPPERCASE, while C# default naming convention is PascalCase. In order to follow Snowflake's uppercase convention when generating new database with code-first approach you have to map each table and column to database name with uppercase. Use `.ToTable("TABLE_NAME")` and `entity.Property(e => e.Id).HasColumnName("ID")` mapping methods.
+
 ## Type mapping
 
 - All basic C# types are supported.
@@ -81,6 +85,8 @@ public class SnowflakeDbContext : DbContext
 * Auto increment
 * Scaffolding support
 * Database versioning support
+* Sequences support, along with primary key
+* Transient tables scaffolding and generation - use `entity.ToTable("TABLE_NAME", t => t.IsTransient())`
 
 ## Known issues
 
