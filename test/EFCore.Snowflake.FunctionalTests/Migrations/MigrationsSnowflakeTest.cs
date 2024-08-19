@@ -2,6 +2,7 @@ using EFCore.Snowflake.FunctionalTests.TestUtilities;
 using EFCore.Snowflake.Metadata;
 using EFCore.Snowflake.Metadata.Internal;
 using EFCore.Snowflake.Scaffolding.Internal;
+using EFCore.Snowflake.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
@@ -689,7 +690,7 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
 
         public override Task InitializeAsync()
         {
-            SnowflakeDbConnectionPool.ClearAllPools();
+            SnowflakeDatabaseCreator.ClearAllPools();
             return base.InitializeAsync();
         }
 

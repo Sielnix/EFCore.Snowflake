@@ -1,3 +1,4 @@
+using System.Reflection;
 using EFCore.Snowflake.Extensions;
 using EFCore.Snowflake.Migrations.Operations;
 using EFCore.Snowflake.Storage.Internal;
@@ -15,6 +16,8 @@ namespace EFCore.Snowflake.Storage;
 
 public class SnowflakeDatabaseCreator : RelationalDatabaseCreator
 {
+    private static readonly object PoolsLock = new();
+
     private const int DbNotExistsOrNotAuthorizedErrorCode = 390201;
 
     private readonly ISnowflakeConnection _snowflakeConnection;
@@ -147,7 +150,7 @@ public class SnowflakeDatabaseCreator : RelationalDatabaseCreator
                 .ExecuteNonQuery(CreateCreateOperations(), adminConnection);
         }
 
-        ClearPool();
+        ClearAllPools();
 
         Exists();
     }
@@ -162,14 +165,14 @@ public class SnowflakeDatabaseCreator : RelationalDatabaseCreator
                 .ConfigureAwait(false);
         }
 
-        ClearPool();
+        ClearAllPools();
 
         await ExistsAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public override async Task DeleteAsync(CancellationToken cancellationToken = default)
     {
-        ClearPool();
+        ClearAllPools();
         ISnowflakeConnection adminConnection = _snowflakeConnection.CreateAdminConnection();
         await using var _ = adminConnection.ConfigureAwait(false);
         await Dependencies.MigrationCommandExecutor
@@ -179,11 +182,35 @@ public class SnowflakeDatabaseCreator : RelationalDatabaseCreator
 
     public override void Delete()
     {
-        ClearPool();
+        ClearAllPools();
 
         ISnowflakeConnection adminConnection = _snowflakeConnection.CreateAdminConnection();
         Dependencies.MigrationCommandExecutor
             .ExecuteNonQuery(CreateDropCommands(), adminConnection);
+    }
+
+    internal static void ClearAllPools()
+    {
+        var lockObj = GetLockObject() ?? PoolsLock;
+
+        lock (lockObj)
+        {
+            SnowflakeDbConnectionPool.ClearAllPools();
+        }
+    }
+
+    private static object? GetLockObject()
+    {
+        // workaround for snowflake .net connector bug
+        FieldInfo? field = typeof(SnowflakeDbConnectionPool).Assembly.GetType("Snowflake.Data.Core.Session.ConnectionPoolManager")?
+            .GetField("s_poolsLock", BindingFlags.NonPublic | BindingFlags.Static);
+
+        if (field == null)
+        {
+            return null;
+        }
+
+        return field.GetValue(null);
     }
 
     private bool IsNoDbException(Exception e)
@@ -236,8 +263,4 @@ public class SnowflakeDatabaseCreator : RelationalDatabaseCreator
 FROM information_schema.tables 
 WHERE table_type = 'BASE TABLE';");
 
-    private void ClearPool()
-    {
-        SnowflakeDbConnectionPool.ClearAllPools();
-    }
 }

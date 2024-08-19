@@ -6,6 +6,7 @@ using EFCore.Snowflake.Metadata;
 using EFCore.Snowflake.Metadata.Internal;
 using EFCore.Snowflake.Properties.Internal;
 using EFCore.Snowflake.Scaffolding.Internal;
+using EFCore.Snowflake.Storage;
 using EFCore.Snowflake.Storage.Internal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
@@ -1287,7 +1288,7 @@ CREATE TABLE "ColumnsWithCollation" (
 
         public override async Task InitializeAsync()
         {
-            SnowflakeDbConnectionPool.ClearAllPools();
+            SnowflakeDatabaseCreator.ClearAllPools();
             await base.InitializeAsync();
             await TestStore.ExecuteNonQueryAsync(@"CREATE SCHEMA IF NOT EXISTS ""db2""");
             await TestStore.ExecuteNonQueryAsync(@"CREATE SCHEMA IF NOT EXISTS ""db.2""");
