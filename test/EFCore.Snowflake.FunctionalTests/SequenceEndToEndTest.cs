@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EFCore.Snowflake.FunctionalTests;
 
-public class SequenceEndToEndTest : IDisposable
+public class SequenceEndToEndTest : IAsyncLifetime
 {
     [ConditionalFact]
     public void Can_use_sequence_end_to_end()
@@ -414,13 +414,15 @@ public class SequenceEndToEndTest : IDisposable
         public string Name { get; set; } = null!;
     }
 
-    public SequenceEndToEndTest()
+    protected SnowflakeTestStore TestStore { get; private set; } = null!;
+
+    public async Task InitializeAsync()
     {
-        TestStore = SnowflakeTestStore.CreateInitialized("SequenceEndToEndTest");
+        TestStore = await SnowflakeTestStore.CreateInitializedAsync("SequenceEndToEndTest");
     }
 
-    protected SnowflakeTestStore TestStore { get; }
-
-    public void Dispose()
-        => TestStore.Dispose();
+    public async Task DisposeAsync()
+    {
+        await TestStore.DisposeAsync();
+    }
 }

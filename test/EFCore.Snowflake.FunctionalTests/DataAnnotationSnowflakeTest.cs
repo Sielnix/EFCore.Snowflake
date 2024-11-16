@@ -42,8 +42,8 @@ public class DataAnnotationSnowflakeTest(DataAnnotationSnowflakeTest.DataAnnotat
         //Assert.Equal(2, entityType.GetIndexes().Count());
     }
 
-    public override void TimestampAttribute_throws_if_value_in_database_changed()
-        => ExecuteWithStrategyInTransaction(
+    public override Task TimestampAttribute_throws_if_value_in_database_changed()
+        => ExecuteWithStrategyInTransactionAsync(
             context =>
             {
                 var clientRow = context.Set<Two>().First(r => r.Id == 1);
@@ -58,6 +58,7 @@ public class DataAnnotationSnowflakeTest(DataAnnotationSnowflakeTest.DataAnnotat
 
                 // ONLY CHANGE - removed concurrency exception. It should be handled properly by Hybrid tables
                 //Assert.Throws<DbUpdateConcurrencyException>(() => context.SaveChanges());
+                return Task.CompletedTask;
             });
 
     private class Comment

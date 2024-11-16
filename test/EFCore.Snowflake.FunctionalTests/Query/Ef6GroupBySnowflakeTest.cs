@@ -1,5 +1,4 @@
 using EFCore.Snowflake.FunctionalTests.TestUtilities;
-using EFCore.Snowflake.Query;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Snowflake.Data.Client;
@@ -14,12 +13,6 @@ public class Ef6GroupBySnowflakeTest : Ef6GroupByTestBase<Ef6GroupBySnowflakeTes
     {
         Fixture.TestSqlLoggerFactory.Clear();
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
-    }
-
-    public override async Task Group_Join_from_LINQ_101(bool async)
-    {
-        await Assert.ThrowsAsync<SnowflakeOuterApplyNotSupportedException>(async () =>
-            await base.Group_Join_from_LINQ_101(async));
     }
 
     public override async Task Whats_new_2021_sample_3(bool async)

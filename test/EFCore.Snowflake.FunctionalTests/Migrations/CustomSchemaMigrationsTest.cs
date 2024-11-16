@@ -1,6 +1,7 @@
 using EFCore.Snowflake.FunctionalTests.TestUtilities;
 using EFCore.Snowflake.Storage;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -27,7 +28,9 @@ public class CustomSchemaMigrationsTest : IClassFixture<CustomSchemaMigrationsTe
         {
             await using var context = new BloggingContext(
                 Fixture.TestStore.AddProviderOptions(
-                    new DbContextOptionsBuilder().EnableServiceProviderCaching(false)).Options);
+                    new DbContextOptionsBuilder().EnableServiceProviderCaching(false))
+                    .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
+                    .Options);
 
             SnowflakeDatabaseCreator creator = (SnowflakeDatabaseCreator)context.GetService<IRelationalDatabaseCreator>();
 

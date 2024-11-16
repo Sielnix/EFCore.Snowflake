@@ -49,9 +49,10 @@ public class SemiStructuredTypesTest : QueryTestBase<SemiStructuredTypesTest.Sem
         protected override string StoreName => "SemiStructuredTypesTest";
         protected override ITestStoreFactory TestStoreFactory => SnowflakeTestStoreFactory.Instance;
 
-        protected override void Seed(SemiStructuredTypesDbContext context)
+        protected override Task SeedAsync(SemiStructuredTypesDbContext context)
         {
             SemiStructuredTypesDbContext.Seed(context);
+            return Task.CompletedTask;
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)

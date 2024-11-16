@@ -38,13 +38,7 @@ public class ComplexNavigationsQuerySnowflakeTest : ComplexNavigationsQueryRelat
             CoreStrings.QueryUnableToTranslateMethod(
                 "Microsoft.EntityFrameworkCore.Query.ComplexNavigationsQueryTestBase<EFCore.Snowflake.FunctionalTests.Query.ComplexNavigationsQuerySnowflakeFixture>",
                 "ClientMethodNullableInt"));
-
-    public override async Task GroupJoin_with_subquery_on_inner(bool async)
-    {
-        await Assert.ThrowsAsync<SnowflakeOuterApplyNotSupportedException>(async () =>
-            await base.GroupJoin_with_subquery_on_inner(async));
-    }
-
+    
     public override async Task Join_with_result_selector_returning_queryable_throws_validation_error(bool async)
     {
         await Assert.ThrowsAsync<ArgumentException>(async () =>
@@ -87,12 +81,6 @@ public class ComplexNavigationsQuerySnowflakeTest : ComplexNavigationsQueryRelat
             await base.Nested_SelectMany_correlated_with_join_table_correctly_translated_to_apply(async));
     }
 
-    public override async Task GroupJoin_with_subquery_on_inner_and_no_DefaultIfEmpty(bool async)
-    {
-        await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
-            await base.GroupJoin_with_subquery_on_inner_and_no_DefaultIfEmpty(async));
-    }
-
     public override async Task OrderBy_collection_count_ThenBy_reference_navigation(bool async)
     {
         await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
@@ -109,6 +97,30 @@ public class ComplexNavigationsQuerySnowflakeTest : ComplexNavigationsQueryRelat
     {
         await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
             await base.Where_navigation_property_to_collection(async));
+    }
+
+    public override async Task Correlated_projection_with_first(bool async)
+    {
+        await Assert.ThrowsAsync<SnowflakeOuterApplyNotSupportedException>(async () =>
+            await base.Correlated_projection_with_first(async));
+    }
+
+    public override async Task Max_in_multi_level_nested_subquery(bool async)
+    {
+        await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
+            await base.Max_in_multi_level_nested_subquery(async));
+    }
+
+    public override async Task Multiple_select_many_in_projection(bool async)
+    {
+        await Assert.ThrowsAsync<SnowflakeOuterApplyNotSupportedException>(async () =>
+            await base.Multiple_select_many_in_projection(async));
+    }
+
+    public override async Task Single_select_many_in_projection_with_take(bool async)
+    {
+        await Assert.ThrowsAsync<SnowflakeOuterApplyNotSupportedException>(async () =>
+            await base.Single_select_many_in_projection_with_take(async));
     }
 
     private void AssertSql(params string[] expected)

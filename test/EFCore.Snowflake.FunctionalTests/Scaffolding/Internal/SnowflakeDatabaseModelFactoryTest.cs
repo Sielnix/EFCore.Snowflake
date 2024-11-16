@@ -346,11 +346,13 @@ public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabase
                 Assert.Equal("db2", sequence.Schema);
 
                 Assert.Single(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "QuotedTableName"));
-                Assert.Empty(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "Table.With.Dot"));
+                Assert.DoesNotContain(dbModel.Tables, t => t.Schema == "db.2" && t.Name == "Table.With.Dot");
+                //Assert.Empty(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "Table.With.Dot"));
                 Assert.Single(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "SimpleTableName"));
                 Assert.Single(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "JustTableName"));
 
-                Assert.Empty(dbModel.Tables.Where(t => t.Schema == "PUBLIC" && t.Name == "QuotedTableName"));
+                Assert.DoesNotContain(dbModel.Tables, t => t.Schema == "PUBLIC" && t.Name == "QuotedTableName");
+                //Assert.Empty(dbModel.Tables.Where(t => t.Schema == "PUBLIC" && t.Name == "QuotedTableName"));
                 Assert.Single(dbModel.Tables.Where(t => t.Schema == "PUBLIC" && t.Name == "Table.With.Dot"));
                 Assert.Single(dbModel.Tables.Where(t => t.Schema == "PUBLIC" && t.Name == "SimpleTableName"));
                 Assert.Single(dbModel.Tables.Where(t => t.Schema == "PUBLIC" && t.Name == "JustTableName"));
