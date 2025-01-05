@@ -16,4 +16,9 @@ public static class SnowflakeTableBuilderExtensions
     {
         tableBuilder.Metadata.SetTableType(SnowflakeTableType.Transient);
     }
+
+    public static void IsHybrid(this TableBuilder tableBuilder)
+    {
+        tableBuilder.Metadata.SetTableType(SnowflakeTableType.Hybrid);
+    }
 }

@@ -48,6 +48,10 @@ public class SnowflakeAnnotationCodeGenerator(AnnotationCodeGeneratorDependencie
         = typeof(SnowflakeTableBuilderExtensions).GetRuntimeMethod(
             nameof(SnowflakeTableBuilderExtensions.IsTransient), [typeof(TableBuilder)])!;
 
+    private static readonly MethodInfo TableIsHybridMethodInfo
+        = typeof(SnowflakeTableBuilderExtensions).GetRuntimeMethod(
+            nameof(SnowflakeTableBuilderExtensions.IsHybrid), [typeof(TableBuilder)])!;
+
     protected override bool IsHandledByConvention(IModel model, IAnnotation annotation)
     {
         if (annotation.Name == SnowflakeAnnotationNames.ValueGenerationStrategy)
@@ -130,6 +134,7 @@ public class SnowflakeAnnotationCodeGenerator(AnnotationCodeGeneratorDependencie
             {
                 SnowflakeTableType.Permanent => TableIsPermanentMethodInfo,
                 SnowflakeTableType.Transient => TableIsTransientMethodInfo,
+                SnowflakeTableType.Hybrid => TableIsHybridMethodInfo,
                 _ => throw new ArgumentOutOfRangeException(nameof(tableType), tableType, null)
             };
 

@@ -240,7 +240,7 @@ WHERE {schemaFilter("SEQUENCE_SCHEMA")}
 
         string query = @$"
 SELECT 
-    TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE, IS_TRANSIENT, COMMENT
+    TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE, IS_TRANSIENT, IS_HYBRID, COMMENT
 FROM
     INFORMATION_SCHEMA.TABLES
 WHERE
@@ -282,6 +282,10 @@ WHERE
                 if (string.Equals(reader.GetString("IS_TRANSIENT"), "YES", StringComparison.OrdinalIgnoreCase))
                 {
                     innerTableType = SnowflakeTableType.Transient;
+                }
+                else if (string.Equals(reader.GetString("IS_HYBRID"), "HYBRID", StringComparison.OrdinalIgnoreCase))
+                {
+                    innerTableType = SnowflakeTableType.Hybrid;
                 }
 
                 table[SnowflakeAnnotationNames.TableType] = innerTableType;
