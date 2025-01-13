@@ -1,31 +1,24 @@
-using System.Data;
-using System.Globalization;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Json;
+using System.Globalization;
 
 namespace EFCore.Snowflake.Storage.Internal.Mapping;
 
 public class SnowflakeDateTimeOffsetTypeMapping : DateTimeOffsetTypeMapping
 {
-    public new static SnowflakeDateTimeOffsetTypeMapping Default { get; } = new(SnowflakeStoreTypeNames.DefaultTimePrecision);
+    public new static SnowflakeDateTimeOffsetTypeMapping Default { get; } = new(SnowflakeStoreTypeNames.TimestampTz, SnowflakeStoreTypeNames.DefaultTimePrecision);
 
-    public SnowflakeDateTimeOffsetTypeMapping(int precision)
+    public SnowflakeDateTimeOffsetTypeMapping(string storeTypeName, int precision)
         : this(
             new RelationalTypeMappingParameters(
                 new CoreTypeMappingParameters(
                     typeof(DateTimeOffset),
                     jsonValueReaderWriter: JsonDateTimeOffsetReaderWriter.Instance
                 ),
-                storeType: SnowflakeStoreTypeNames.GetTimeType(SnowflakeStoreTypeNames.TimestampTz, precision),
+                storeType: SnowflakeStoreTypeNames.GetTimeType(storeTypeName, precision),
                 dbType: System.Data.DbType.DateTimeOffset,
                 precision: precision,
                 storeTypePostfix: StoreTypePostfix.Precision))
-    {
-    }
-
-
-    public SnowflakeDateTimeOffsetTypeMapping(string storeType, DbType? dbType = System.Data.DbType.DateTimeOffset)
-        : base(storeType, dbType)
     {
     }
 

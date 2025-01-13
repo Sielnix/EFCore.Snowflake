@@ -78,7 +78,7 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
                 ]
             },
             { SnowflakeStoreTypeNames.TimestampNtz, [ SnowflakeDateTimeTypeMapping.Default ] },
-            { SnowflakeStoreTypeNames.TimestampLtz, [ SnowflakeDateTimeTypeMapping.LtzMapping] },
+            { SnowflakeStoreTypeNames.TimestampLtz, [ SnowflakeDateTimeOffsetAsLtzTypeMapping.Default, SnowflakeDateTimeAsLtzTypeMapping.Default ] },
             { SnowflakeStoreTypeNames.TimestampTz, [ SnowflakeDateTimeOffsetTypeMapping.Default ] },
         };
 
