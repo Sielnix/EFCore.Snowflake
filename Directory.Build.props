@@ -1,7 +1,7 @@
 <Project>
   <Import Project="Development.props" Condition="Exists('Development.props')" />
   <PropertyGroup>
-    <VersionPrefix>8.0.8</VersionPrefix>
+    <VersionPrefix>9.0.1</VersionPrefix>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest</AnalysisLevel>
@@ -11,7 +11,7 @@
 
     <Descripion>Snowflake database provider for Entity Framework Core.</Descripion>
     <PackageTags>Entity Framework Core;entity-framework-core;EF;Data;O/RM;EntityFramework;EntityFrameworkCore;EFCore;Snowflake</PackageTags>
-    <Copyright>Copyright 2024 © Krzysztof Sielaff</Copyright>
+    <Copyright>Copyright 2025 © Krzysztof Sielaff</Copyright>
     <Authors>Krzysztof Sielaff</Authors>
     <Company>Sielnix</Company>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
