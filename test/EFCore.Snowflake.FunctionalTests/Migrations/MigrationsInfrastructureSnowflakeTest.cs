@@ -188,11 +188,11 @@ public class MigrationsInfrastructureSnowflakeTest(MigrationsInfrastructureSnowf
     [ConditionalFact(Skip = "Generated sql mixed with direct statements, not supported by snowflake")]
     public override Task Can_generate_up_and_down_scripts_noTransactions() => base.Can_generate_up_and_down_scripts_noTransactions();
 
-    //[ConditionalFact(Skip = "Snowflake doesn't work with DDL and transactions")]
-    //public override void Can_apply_two_migrations_in_transaction() => base.Can_apply_two_migrations_in_transaction();
+    [ConditionalFact(Skip = "Snowflake doesn't work with DDL and transactions")]
+    public override void Can_apply_two_migrations_in_transaction() => base.Can_apply_two_migrations_in_transaction();
 
-    //[ConditionalFact(Skip = "Snowflake doesn't work with DDL and transactions")]
-    //public override Task Can_apply_two_migrations_in_transaction_async() => base.Can_apply_two_migrations_in_transaction_async();
+    [ConditionalFact(Skip = "Snowflake doesn't work with DDL and transactions")]
+    public override Task Can_apply_two_migrations_in_transaction_async() => base.Can_apply_two_migrations_in_transaction_async();
 
     private class BloggingContext(DbContextOptions options) : DbContext(options)
     {
