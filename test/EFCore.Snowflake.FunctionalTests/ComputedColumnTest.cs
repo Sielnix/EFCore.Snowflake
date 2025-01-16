@@ -5,14 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EFCore.Snowflake.FunctionalTests;
 
-public class ComputedColumnTest : IDisposable
+public class ComputedColumnTest : IAsyncLifetime
 {
-    public ComputedColumnTest()
-    {
-        TestStore = SnowflakeTestStore.CreateInitialized("ComputedColumnTest");
-    }
-
-    protected SnowflakeTestStore TestStore { get; }
+    protected SnowflakeTestStore TestStore { get; private set; } = null!;
 
     [ConditionalFact]
     public void Can_use_computed_columns()
@@ -96,6 +91,13 @@ public class ComputedColumnTest : IDisposable
         public int? P5 { get; set; }
     }
     
-    public virtual void Dispose()
-        => TestStore.Dispose();
+    public async Task InitializeAsync()
+    {
+        TestStore = await SnowflakeTestStore.CreateInitializedAsync("ComputedColumnTest");
+    }
+
+    public async Task DisposeAsync()
+    {
+        await TestStore.DisposeAsync();
+    }
 }

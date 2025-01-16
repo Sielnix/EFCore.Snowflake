@@ -30,45 +30,45 @@ public class ManyToManyTrackingSnowflakeTest(ManyToManyTrackingSnowflakeTest.Man
 #pragma warning restore xUnit1024 // Test methods cannot have overloads
 
     [ConditionalFact(Skip = "Use Hybrid")]
-    public override void Can_delete_with_many_to_many()
+    public override Task Can_delete_with_many_to_many()
     {
-        base.Can_delete_with_many_to_many();
+        return base.Can_delete_with_many_to_many();
     }
 
     [ConditionalFact(Skip = "Use Hybrid")]
-    public override void Can_delete_with_many_to_many_composite_additional_pk_with_navs()
+    public override Task Can_delete_with_many_to_many_composite_additional_pk_with_navs()
     {
-        base.Can_delete_with_many_to_many_composite_additional_pk_with_navs();
+        return base.Can_delete_with_many_to_many_composite_additional_pk_with_navs();
     }
 
     [ConditionalFact(Skip = "Use Hybrid")]
-    public override void Can_delete_with_many_to_many_composite_additional_pk_with_navs_unidirectional()
+    public override Task Can_delete_with_many_to_many_composite_additional_pk_with_navs_unidirectional()
     {
-        base.Can_delete_with_many_to_many_composite_additional_pk_with_navs_unidirectional();
+        return base.Can_delete_with_many_to_many_composite_additional_pk_with_navs_unidirectional();
     }
 
     [ConditionalFact(Skip = "Use Hybrid")]
-    public override void Can_delete_with_many_to_many_composite_shared_with_navs()
+    public override Task Can_delete_with_many_to_many_composite_shared_with_navs()
     {
-        base.Can_delete_with_many_to_many_composite_shared_with_navs();
+        return base.Can_delete_with_many_to_many_composite_shared_with_navs();
     }
 
     [ConditionalFact(Skip = "Use Hybrid")]
-    public override void Can_delete_with_many_to_many_composite_with_navs()
+    public override Task Can_delete_with_many_to_many_composite_with_navs()
     {
-        base.Can_delete_with_many_to_many_composite_with_navs();
+        return base.Can_delete_with_many_to_many_composite_with_navs();
     }
 
     [ConditionalFact(Skip = "Use Hybrid")]
-    public override void Can_delete_with_many_to_many_composite_with_navs_unidirectional()
+    public override Task Can_delete_with_many_to_many_composite_with_navs_unidirectional()
     {
-        base.Can_delete_with_many_to_many_composite_with_navs_unidirectional();
+        return base.Can_delete_with_many_to_many_composite_with_navs_unidirectional();
     }
 
     [ConditionalFact(Skip = "Use Hybrid")]
-    public override void Can_delete_with_many_to_many_with_navs()
+    public override Task Can_delete_with_many_to_many_with_navs()
     {
-        base.Can_delete_with_many_to_many_with_navs();
+        return base.Can_delete_with_many_to_many_with_navs();
     }
 
     [ConditionalTheory(Skip = "Use Hybrid tables")]

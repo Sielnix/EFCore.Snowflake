@@ -1,7 +1,7 @@
-using System.Reflection;
 using EFCore.Snowflake.Extensions;
 using EFCore.Snowflake.Migrations.Operations;
 using EFCore.Snowflake.Storage.Internal;
+using EFCore.Snowflake.Storage.Internal.Mapping;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Storage;
 using Snowflake.Data.Client;
+using System.Data.Common;
+using System.Reflection;
 using System.Transactions;
 
 namespace EFCore.Snowflake.Storage;
@@ -42,9 +44,34 @@ public class SnowflakeDatabaseCreator : RelationalDatabaseCreator
             using (checkConnection)
             {
                 checkConnection.Open(true);
-            }
 
-            return true;
+                return Dependencies.ExecutionStrategy.Execute(checkConnection, connection =>
+                {
+                    string? db = connection.DatabaseInConnectionString;
+                    if (db is null)
+                    {
+                        return false;
+                    }
+
+                    IRelationalCommand command = CreateListDatabasesCommand(db);
+                    using RelationalDataReader reader =
+                        command.ExecuteReader(CreateRelationalCommandParameterObject(connection));
+
+                    IEnumerable<(DbColumn c, int i)> cols = reader.DbDataReader.GetColumnSchema()
+                        .Select((c, i) => (c, i));
+                    int nameColOrdinal = cols.Single(c => c.c.ColumnName == "name").i;
+
+                    while (reader.DbDataReader.Read())
+                    {
+                        if (reader.DbDataReader.GetString(nameColOrdinal) == db)
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                });
+            }
         }
         catch (Exception e)
         {
@@ -66,9 +93,37 @@ public class SnowflakeDatabaseCreator : RelationalDatabaseCreator
             await using (checkConnection.ConfigureAwait(false))
             {
                 await checkConnection.OpenAsync(cancellationToken, true).ConfigureAwait(false);
-            }
 
-            return true;
+                return await Dependencies.ExecutionStrategy.ExecuteAsync(checkConnection, async (connection, ct) =>
+                {
+                    string? db = connection.DatabaseInConnectionString;
+                    if (db is null)
+                    {
+                        return false;
+                    }
+
+                    IRelationalCommand command = CreateListDatabasesCommand(db);
+                    RelationalDataReader reader =
+                        await command.ExecuteReaderAsync(CreateRelationalCommandParameterObject(connection), ct).ConfigureAwait(false);
+
+                    await using (reader.ConfigureAwait(false))
+                    {
+                        IEnumerable<(DbColumn c, int i)> cols = reader.DbDataReader.GetColumnSchema()
+                            .Select((c, i) => (c, i));
+                        int nameColOrdinal = cols.Single(c => c.c.ColumnName == "name").i;
+
+                        while (await reader.DbDataReader.ReadAsync(ct).ConfigureAwait(false))
+                        {
+                            if (reader.DbDataReader.GetString(nameColOrdinal) == db)
+                            {
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }
+                }, null, cancellationToken).ConfigureAwait(false);
+            }
         }
         catch (Exception e)
         {
@@ -89,13 +144,7 @@ public class SnowflakeDatabaseCreator : RelationalDatabaseCreator
             {
                 IRelationalCommand command = CreateHasTablesCommand();
                 object? result = command.ExecuteScalar(
-                    new RelationalCommandParameterObject(
-                        connection,
-                        null,
-                        null,
-                        Dependencies.CurrentContext.Context,
-                        Dependencies.CommandLogger,
-                        CommandSource.Migrations));
+                    CreateRelationalCommandParameterObject(connection));
 
                 if (result == null)
                 {
@@ -121,13 +170,7 @@ public class SnowflakeDatabaseCreator : RelationalDatabaseCreator
             {
                 IRelationalCommand command = CreateHasTablesCommand();
                 object? result = await command.ExecuteScalarAsync(
-                    new RelationalCommandParameterObject(
-                        connection,
-                        null,
-                        null,
-                        Dependencies.CurrentContext.Context,
-                        Dependencies.CommandLogger,
-                        CommandSource.Migrations),
+                    CreateRelationalCommandParameterObject(connection),
                     cancellationToken: ct);
 
                 if (result == null)
@@ -141,7 +184,18 @@ public class SnowflakeDatabaseCreator : RelationalDatabaseCreator
             cancellationToken)
             .ConfigureAwait(false);
     }
-        
+
+    private RelationalCommandParameterObject CreateRelationalCommandParameterObject(ISnowflakeConnection connection)
+    {
+        return new RelationalCommandParameterObject(
+            connection,
+            null,
+            null,
+            Dependencies.CurrentContext.Context,
+            Dependencies.CommandLogger,
+            CommandSource.Migrations);
+    }
+
     public override void Create()
     {
         using (ISnowflakeConnection adminConnection = _snowflakeConnection.CreateAdminConnection())
@@ -178,6 +232,16 @@ public class SnowflakeDatabaseCreator : RelationalDatabaseCreator
         await Dependencies.MigrationCommandExecutor
             .ExecuteNonQueryAsync(CreateDropCommands(), adminConnection, cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    public override bool EnsureCreated()
+    {
+        return base.EnsureCreated();
+    }
+
+    public override Task<bool> EnsureCreatedAsync(CancellationToken cancellationToken = new CancellationToken())
+    {
+        return base.EnsureCreatedAsync(cancellationToken);
     }
 
     public override void Delete()
@@ -256,6 +320,10 @@ public class SnowflakeDatabaseCreator : RelationalDatabaseCreator
 
         return Dependencies.MigrationsSqlGenerator.Generate(operations);
     }
+
+    private IRelationalCommand CreateListDatabasesCommand(string databaseName)
+        => _rawSqlCommandBuilder
+            .Build($@"SHOW DATABASES STARTS WITH '{SnowflakeStringLikeEscape.EscapeSqlLiteral(databaseName)}';");
 
     private IRelationalCommand CreateHasTablesCommand()
         => _rawSqlCommandBuilder

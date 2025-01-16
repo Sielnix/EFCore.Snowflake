@@ -52,7 +52,7 @@ public class SnowflakeIndirectTypesTests(SnowflakeIndirectTypesTests.SnowflakeBo
                 .HasColumnType("NUMERIC");
         }
 
-        protected override void Seed(PoolableDbContext context)
+        protected override async Task SeedAsync(PoolableDbContext context)
         {
             context.AddRange(
                 new HardTypes()
@@ -74,7 +74,7 @@ public class SnowflakeIndirectTypesTests(SnowflakeIndirectTypesTests.SnowflakeBo
                     DoubleAsNumber = null
                 });
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
         protected override string StoreName => "IndirectTypes";

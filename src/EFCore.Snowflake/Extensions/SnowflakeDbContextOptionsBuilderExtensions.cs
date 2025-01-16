@@ -58,6 +58,8 @@ public static class SnowflakeDbContextOptionsBuilderExtensions
         var extension = (SnowflakeOptionsExtension)GetOrCreateExtension(optionsBuilder).WithConnection(connection, contextOwnsConnection);
         ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
 
+        ConfigureWarnings(optionsBuilder);
+
         snowflakeOptionsAction?.Invoke(new SnowflakeDbContextOptionsBuilder(optionsBuilder));
 
         return optionsBuilder;

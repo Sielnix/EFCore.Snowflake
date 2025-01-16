@@ -5,10 +5,14 @@ namespace EFCore.Snowflake.Storage.Internal.Mapping;
 public abstract class SnowflakeSemiStructuredTypeMapping : StringTypeMapping, ISnowflakeCustomizedSqlLiteralProvider
 {
     protected SnowflakeSemiStructuredTypeMapping(string storeType)
+        : this(storeType, typeof(string))
+    {
+    }
+
+    protected SnowflakeSemiStructuredTypeMapping(string storeType, Type clrType)
         : this(
             new RelationalTypeMappingParameters(
-                new CoreTypeMappingParameters(
-                    typeof(string)),
+                new CoreTypeMappingParameters(clrType),
                 storeType,
                 StoreTypePostfix.Size,
                 System.Data.DbType.String,

@@ -8,7 +8,7 @@ namespace EFCore.Snowflake.Query.ExpressionTranslators;
 
 public class SnowflakeDateTimeMethodTranslator : IMethodCallTranslator
 {
-    private readonly Dictionary<MethodInfo, string> _methodInfoDatePartMapping = new()
+    private static readonly Dictionary<MethodInfo, string> MethodInfoDatePartMapping = new()
     {
         { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddYears), new[] { typeof(int) })!, "year" },
         { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddMonths), new[] { typeof(int) })!, "month" },
@@ -26,12 +26,11 @@ public class SnowflakeDateTimeMethodTranslator : IMethodCallTranslator
         { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddMilliseconds), new[] { typeof(double) })!, "millisecond" }
     };
     
-    private static readonly Dictionary<MethodInfo, string> _methodInfoDateDiffMapping = new()
+    private static readonly Dictionary<MethodInfo, string> MethodInfoDateDiffMapping = new()
     {
         { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.ToUnixTimeSeconds), Type.EmptyTypes)!, "second" },
         { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.ToUnixTimeMilliseconds), Type.EmptyTypes)!, "millisecond" }
     };
-
 
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
@@ -46,7 +45,7 @@ public class SnowflakeDateTimeMethodTranslator : IMethodCallTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (_methodInfoDatePartMapping.TryGetValue(method, out var datePart)
+        if (MethodInfoDatePartMapping.TryGetValue(method, out var datePart)
             && instance != null)
         {
             if (arguments[0] is SqlConstantExpression { Value: double and (<= int.MinValue or >= int.MaxValue) })
@@ -63,7 +62,7 @@ public class SnowflakeDateTimeMethodTranslator : IMethodCallTranslator
                 instance.TypeMapping);
         }
 
-        if (_methodInfoDateDiffMapping.TryGetValue(method, out var timePart))
+        if (MethodInfoDateDiffMapping.TryGetValue(method, out var timePart))
         {
             return _sqlExpressionFactory.Function(
                 "TIMESTAMPDIFF",

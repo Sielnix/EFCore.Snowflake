@@ -775,25 +775,6 @@ WHERE
         return dt.CreateDataReader();
     }
 
-    private string GetIdentity(TableId table, string columnName, long? identityStart, long? identityIncrement)
-    {
-        if (!identityStart.HasValue)
-        {
-            throw new InvalidOperationException(
-                $"Invalid column {table.SchemaName}.{table.TableName}.{columnName}. " +
-                $"Getting identity options but ({nameof(identityStart)} is not set");
-        }
-
-        if (!identityIncrement.HasValue)
-        {
-            throw new InvalidOperationException(
-                $"Invalid column {table.SchemaName}.{table.TableName}.{columnName}. " +
-                $"Getting identity options but ({nameof(identityIncrement)} is not set");
-        }
-
-        return FormattableString.Invariant($"START {identityStart.Value} INCREMENT {identityIncrement.Value}");
-    }
-
     private string GetStoreType(
         TableId table,
         string columnName,

@@ -140,7 +140,7 @@ public class ArrayQueryTest : IClassFixture<ArrayQueryTest.ArrayQueryFixture>
 
     public class ArrayQueryFixture : SharedStoreFixtureBase<ArrayQueryContext>
     {
-        protected override void Seed(ArrayQueryContext context)
+        protected override async Task SeedAsync(ArrayQueryContext context)
         {
             DateOnly date = new DateOnly(2024, 3, 29);
             TimeOnly time = new TimeOnly(13, 14, 15, 167);
@@ -223,7 +223,7 @@ public class ArrayQueryTest : IClassFixture<ArrayQueryTest.ArrayQueryFixture>
 
             context.AddRange();
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
         protected override string StoreName => "ArrayQuery";

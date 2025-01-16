@@ -1,29 +1,23 @@
-using System.Data.Common;
+using EFCore.Snowflake.Storage.Internal.Mapping;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Snowflake.Data.Client;
+using System.Data.Common;
 
 namespace EFCore.Snowflake.FunctionalTests.TestUtilities;
 
 public class SnowflakeTestStore : RelationalTestStore
 {
-    public SnowflakeTestStore(
-        string name,
-        string? schemaOverride,
-        bool shared)
-        : base(name, shared)
+    public SnowflakeTestStore(string name, string? schemaOverride, bool shared)
+        : base(name, shared, new SnowflakeDbConnection(CreateConnectionString(name, schemaOverride)))
     {
-        string connectionString = CreateConnectionString(name, schemaOverride);
-
-        this.ConnectionString = connectionString;
-        this.Connection = new SnowflakeDbConnection(connectionString);
     }
 
     public static SnowflakeTestStore Create(string name, string? schemaOverride) => new(name, schemaOverride, shared: false);
 
-    public static SnowflakeTestStore CreateInitialized(string name, string? schemaOverride = null)
+    public static Task<SnowflakeTestStore> CreateInitializedAsync(string name, string? schemaOverride = null)
         => new SnowflakeTestStore(name, schemaOverride, shared: false)
-            .InitializeSnowflake(null, null, null);
+            .InitializeSnowflakeAsync(null, null, null);
 
     public static SnowflakeTestStore GetOrCreate(string name, string? schemaOverride) => new(name, schemaOverride, shared: true);
 
@@ -45,11 +39,11 @@ public class SnowflakeTestStore : RelationalTestStore
     private static T? ExecuteScalar<T>(DbConnection connection, string sql, params object[] parameters)
         => Execute(connection, command => (T?)command.ExecuteScalar(), sql, false);
 
-    public SnowflakeTestStore InitializeSnowflake(
+    public async Task<SnowflakeTestStore> InitializeSnowflakeAsync(
         IServiceProvider? serviceProvider,
         Func<DbContext>? createContext,
-        Action<DbContext>? seed)
-        => (SnowflakeTestStore)Initialize(serviceProvider, createContext, seed);
+        Func<DbContext, Task>? seed)
+        => (SnowflakeTestStore)await InitializeAsync(serviceProvider, createContext, seed);
 
     public static T Execute<T>(
         DbConnection connection,
@@ -85,6 +79,63 @@ public class SnowflakeTestStore : RelationalTestStore
             }
         }
     }
+
+    protected override async Task InitializeAsync(Func<DbContext> createContext, Func<DbContext, Task>? seed, Func<DbContext, Task>? clean)
+    {
+        await CreateDatabase(clean);
+
+        await using var context = createContext();
+        await context.Database.EnsureCreatedResilientlyAsync();
+
+        if (seed != null)
+        {
+            await seed(context);
+        }
+    }
+
+    private async Task CreateDatabase(Func<DbContext, Task>? clean)
+    {
+        await using SnowflakeDbConnection connection = new(CreateConnectionString(null));
+        await connection.OpenAsync();
+
+        if (await DatabaseExists(connection))
+        {
+            await using var context = new DbContext(
+                AddProviderOptions(new DbContextOptionsBuilder().EnableServiceProviderCaching(false)).Options);
+            await CleanAsync(context);
+
+            if (clean != null)
+            {
+                await clean(context);
+            }
+        }
+        else
+        {
+            await ExecuteNonQueryAsync(connection, $"CREATE DATABASE \"{ToDbName(Name).Replace("\"", "\"\"")}\"");
+        }
+    }
+
+    private async Task<bool> DatabaseExists(SnowflakeDbConnection connection)
+    {
+        DbCommand dbExistsCommand = connection.CreateCommand();
+        string dbName = ToDbName(Name);
+        dbExistsCommand.CommandText =
+            $@"SHOW DATABASES STARTS WITH '{SnowflakeStringLikeEscape.EscapeSqlLiteral(dbName)}';";
+        await using var reader = await dbExistsCommand.ExecuteReaderAsync();
+        IEnumerable<(DbColumn c, int i)> cols = reader.GetColumnSchema().Select((c, i) => (c, i));
+        int nameColOrdinal = cols.Single(c => c.c.ColumnName == "name").i;
+
+        while (await reader.ReadAsync().ConfigureAwait(false))
+        {
+            if (reader.GetString(nameColOrdinal) == dbName)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     private static async Task<T> ExecuteAsync<T>(
         DbConnection connection,
@@ -140,16 +191,21 @@ public class SnowflakeTestStore : RelationalTestStore
         return builder.UseSnowflake(Connection, opt => opt.ApplyConfiguration());
     }
 
-    public override void Clean(DbContext context)
+    public override Task CleanAsync(DbContext context)
     {
         context.Database.EnsureClean();
+        return Task.CompletedTask;
     }
 
-    public static string CreateConnectionString(string name, string? schemaOverride = null)
+    public static string CreateConnectionString(string? name, string? schemaOverride = null)
     {
         SnowflakeDbConnectionStringBuilder builder = new();
         builder.ConnectionString = TestEnvironment.DefaultConnectionString;
-        builder["db"] = name.ToUpperInvariant();
+
+        if (name != null)
+        {
+            builder["db"] = ToDbName(name);
+        }
 
         if (schemaOverride != null)
         {
@@ -157,5 +213,10 @@ public class SnowflakeTestStore : RelationalTestStore
         }
 
         return builder.ToString();
+    }
+
+    private static string ToDbName(string name)
+    {
+        return name.ToUpperInvariant();
     }
 }

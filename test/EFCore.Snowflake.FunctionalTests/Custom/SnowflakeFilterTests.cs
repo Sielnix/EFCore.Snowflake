@@ -76,7 +76,9 @@ public class SnowflakeFilterTests : IClassFixture<SnowflakeFilterTests.Snowflake
             modelBuilder.Entity<TimeOnlyFilter>();
         }
 
-        protected override void Seed(PoolableDbContext context)
+
+
+        protected override async Task SeedAsync(PoolableDbContext context)
         {
             context.AddRange(
                 new TimeOnlyFilter()
@@ -90,7 +92,7 @@ public class SnowflakeFilterTests : IClassFixture<SnowflakeFilterTests.Snowflake
                     Time = new(13, 30)
                 });
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
         protected override string StoreName => "Filter";

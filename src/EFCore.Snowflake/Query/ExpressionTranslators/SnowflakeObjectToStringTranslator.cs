@@ -76,7 +76,7 @@ public class SnowflakeObjectToStringTranslator : IMethodCallTranslator
                             _sqlExpressionFactory.Equal(instance, _sqlExpressionFactory.Constant(true)),
                             _sqlExpressionFactory.Constant(true.ToString()))
                     ],
-                    _sqlExpressionFactory.Constant(null));
+                    _sqlExpressionFactory.Constant(string.Empty));
             }
 
             return _sqlExpressionFactory.Case(
@@ -88,12 +88,12 @@ public class SnowflakeObjectToStringTranslator : IMethodCallTranslator
                 _sqlExpressionFactory.Constant(true.ToString()));
         }
 
-        SqlFunctionExpression result = _sqlExpressionFactory.Function(
-            "TO_VARCHAR",
-            [instance],
+        SqlExpression result = _sqlExpressionFactory.Function(
+            name: "TO_VARCHAR",
+            arguments: [instance],
             nullable: true,
             argumentsPropagateNullability: Statics.TrueArrays[1],
-            typeof(string));
+            returnType: typeof(string));
 
         if (instance.Type == typeof(byte)
             &&

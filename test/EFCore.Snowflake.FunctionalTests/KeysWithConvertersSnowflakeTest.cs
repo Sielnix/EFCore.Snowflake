@@ -17,44 +17,44 @@ public class KeysWithConvertersSnowflakeTest(KeysWithConvertersSnowflakeTest.Key
     }
 
     [ConditionalFact(Skip = "Requires FK index - use Hybrid tables")]
-    public override void Can_insert_and_read_back_with_comparable_struct_binary_key_and_required_dependents()
+    public override Task Can_insert_and_read_back_with_comparable_struct_binary_key_and_required_dependents()
     {
-        base.Can_insert_and_read_back_with_comparable_struct_binary_key_and_required_dependents();
+        return base.Can_insert_and_read_back_with_comparable_struct_binary_key_and_required_dependents();
     }
 
     [ConditionalFact(Skip = "Requires FK index - use Hybrid tables")]
-    public override void Can_insert_and_read_back_with_comparable_struct_key_and_required_dependents()
+    public override Task Can_insert_and_read_back_with_comparable_struct_key_and_required_dependents()
     {
-        base.Can_insert_and_read_back_with_comparable_struct_key_and_required_dependents();
+        return base.Can_insert_and_read_back_with_comparable_struct_key_and_required_dependents();
     }
 
     [ConditionalFact(Skip = "Requires FK index - use Hybrid tables")]
-    public override void Can_insert_and_read_back_with_generic_comparable_struct_binary_key_and_required_dependents()
+    public override Task Can_insert_and_read_back_with_generic_comparable_struct_binary_key_and_required_dependents()
     {
-        base.Can_insert_and_read_back_with_generic_comparable_struct_binary_key_and_required_dependents();
+        return base.Can_insert_and_read_back_with_generic_comparable_struct_binary_key_and_required_dependents();
     }
 
     [ConditionalFact(Skip = "Requires FK index - use Hybrid tables")]
-    public override void Can_insert_and_read_back_with_generic_comparable_struct_key_and_required_dependents()
+    public override Task Can_insert_and_read_back_with_generic_comparable_struct_key_and_required_dependents()
     {
-        base.Can_insert_and_read_back_with_generic_comparable_struct_key_and_required_dependents();
+        return base.Can_insert_and_read_back_with_generic_comparable_struct_key_and_required_dependents();
     }
 
     [ConditionalFact(Skip = "Requires FK index - use Hybrid tables")]
-    public override void Can_insert_and_read_back_with_struct_binary_key_and_required_dependents()
+    public override Task Can_insert_and_read_back_with_struct_binary_key_and_required_dependents()
     {
-        base.Can_insert_and_read_back_with_struct_binary_key_and_required_dependents();
+        return base.Can_insert_and_read_back_with_struct_binary_key_and_required_dependents();
     }
 
     [ConditionalFact(Skip = "Requires FK index - use Hybrid tables")]
-    public override void Can_insert_and_read_back_with_struct_key_and_required_dependents()
+    public override Task Can_insert_and_read_back_with_struct_key_and_required_dependents()
     {
-        base.Can_insert_and_read_back_with_struct_key_and_required_dependents();
+        return base.Can_insert_and_read_back_with_struct_key_and_required_dependents();
     }
 
     [ConditionalFact(Skip = "Requires FK index - use Hybrid tables")]
-    public override void Can_insert_and_read_back_with_structural_struct_binary_key_and_required_dependents()
+    public override Task Can_insert_and_read_back_with_structural_struct_binary_key_and_required_dependents()
     {
-        base.Can_insert_and_read_back_with_structural_struct_binary_key_and_required_dependents();
+        return base.Can_insert_and_read_back_with_structural_struct_binary_key_and_required_dependents();
     }
 }

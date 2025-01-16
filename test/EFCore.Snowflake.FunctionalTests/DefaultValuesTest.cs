@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EFCore.Snowflake.FunctionalTests;
 
-public class DefaultValuesTest : IDisposable
+public class DefaultValuesTest : IAsyncLifetime
 {
     private const string DefaultDescription = "Best Chips";
     private const string CustomDescription = "Probably Best Chips";
@@ -33,15 +33,17 @@ public class DefaultValuesTest : IDisposable
         .AddEntityFrameworkSnowflake()
         .BuildServiceProvider(validateScopes: true);
 
-    public DefaultValuesTest()
+    protected SnowflakeTestStore TestStore { get; private set; } = null!;
+
+    public async Task InitializeAsync()
     {
-        TestStore = SnowflakeTestStore.CreateInitialized("DefaultValuesTest");
+        TestStore = await SnowflakeTestStore.CreateInitializedAsync("DefaultValuesTest");
     }
 
-    protected SnowflakeTestStore TestStore { get; }
-
-    public virtual void Dispose()
-        => TestStore.Dispose();
+    public async Task DisposeAsync()
+    {
+        await TestStore.DisposeAsync();
+    }
 
     [ConditionalFact]
     public void Can_use_Snowflake_default_values()

@@ -1,29 +1,20 @@
-using EFCore.Snowflake.Extensions;
 using EFCore.Snowflake.FunctionalTests.TestUtilities;
-using EFCore.Snowflake.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace EFCore.Snowflake.FunctionalTests;
 
 public class MaterializationInterceptionSnowflakeTest :
-    MaterializationInterceptionTestBase<MaterializationInterceptionSnowflakeTest.SnowflakeLibraryContext>,
-    IClassFixture<MaterializationInterceptionSnowflakeTest.MaterializationInterceptionSnowflakeFixture>
+    MaterializationInterceptionTestBase<MaterializationInterceptionSnowflakeTest.SnowflakeLibraryContext>//,
+    //IClassFixture<MaterializationInterceptionSnowflakeTest.MaterializationInterceptionSnowflakeFixture>
 {
-    public MaterializationInterceptionSnowflakeTest(MaterializationInterceptionSnowflakeFixture fixture)
-        : base(fixture)
-    {
-    }
+    //public MaterializationInterceptionSnowflakeTest(MaterializationInterceptionSnowflakeFixture fixture)
+    //    : base(fixture)
+    //{
+    //}
 
-    public class SnowflakeLibraryContext : LibraryContext
+    public class SnowflakeLibraryContext(DbContextOptions options) : LibraryContext(options)
     {
-        public SnowflakeLibraryContext(DbContextOptions options)
-            : base(options)
-        {
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -32,26 +23,29 @@ public class MaterializationInterceptionSnowflakeTest :
         }
     }
 
-    public override LibraryContext CreateContext(IEnumerable<ISingletonInterceptor> interceptors, bool inject)
-        => new SnowflakeLibraryContext(Fixture.CreateOptions(interceptors, inject));
+    protected override ITestStoreFactory TestStoreFactory
+        => SnowflakeTestStoreFactory.Instance;
 
-    public class MaterializationInterceptionSnowflakeFixture : SingletonInterceptorsFixtureBase
-    {
-        protected override string StoreName
-            => "MaterializationInterception";
+    //public override LibraryContext CreateContext(IEnumerable<ISingletonInterceptor> interceptors, bool inject)
+    //    => new SnowflakeLibraryContext(Fixture.CreateOptions(interceptors, inject));
 
-        protected override ITestStoreFactory TestStoreFactory
-            => SnowflakeTestStoreFactory.Instance;
+    //public class MaterializationInterceptionSnowflakeFixture : SingletonInterceptorsFixtureBase
+    //{
+    //    protected override string StoreName
+    //        => "MaterializationInterception";
 
-        protected override IServiceCollection InjectInterceptors(
-            IServiceCollection serviceCollection,
-            IEnumerable<ISingletonInterceptor> injectedInterceptors)
-            => base.InjectInterceptors(serviceCollection.AddEntityFrameworkSnowflake(), injectedInterceptors);
+    //    protected override ITestStoreFactory TestStoreFactory
+    //        => SnowflakeTestStoreFactory.Instance;
 
-        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-        {
-            new SnowflakeDbContextOptionsBuilder(base.AddOptions(builder));
-            return builder;
-        }
-    }
+    //    protected override IServiceCollection InjectInterceptors(
+    //        IServiceCollection serviceCollection,
+    //        IEnumerable<ISingletonInterceptor> injectedInterceptors)
+    //        => base.InjectInterceptors(serviceCollection.AddEntityFrameworkSnowflake(), injectedInterceptors);
+
+    //    public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+    //    {
+    //        new SnowflakeDbContextOptionsBuilder(base.AddOptions(builder));
+    //        return builder;
+    //    }
+    //}
 }
