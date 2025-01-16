@@ -240,7 +240,7 @@ WHERE {schemaFilter("SEQUENCE_SCHEMA")}
 
         string query = @$"
 SELECT 
-    TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE, IS_TRANSIENT, IS_HYBRID, COMMENT
+    TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE, IS_TRANSIENT, COMMENT
 FROM
     INFORMATION_SCHEMA.TABLES
 WHERE
@@ -263,10 +263,11 @@ WHERE
                 comment = reader.GetString("COMMENT");
             }
 
-            bool isTable = tableType == "BASE TABLE";
+            bool isTable = tableType == "BASE TABLE" || tableType == "HYBRID TABLE";
             DatabaseTable table = tableType switch
             {
                 "BASE TABLE" => new DatabaseTable(),
+                "HYBRID TABLE" => new DatabaseTable(),
                 "VIEW" => new DatabaseView(),
                 "MATERIALIZED VIEW" => new DatabaseView(),
                 _ => throw new ArgumentOutOfRangeException($"Unknown table type '{tableType}' when scaffolding {schema}.{tableName}")
@@ -283,7 +284,7 @@ WHERE
                 {
                     innerTableType = SnowflakeTableType.Transient;
                 }
-                else if (string.Equals(reader.GetString("IS_HYBRID"), "HYBRID", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(tableType, "HYBRID TABLE", StringComparison.OrdinalIgnoreCase))
                 {
                     innerTableType = SnowflakeTableType.Hybrid;
                 }
