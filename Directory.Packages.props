@@ -23,7 +23,7 @@
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="9.0.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.9.2" />
 
-    <PackageVersion Include="Snowflake.Data" Version="4.2.0" />
+    <PackageVersion Include="Snowflake.Data" Version="4.3.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="xunit" Version="2.9.0" />
