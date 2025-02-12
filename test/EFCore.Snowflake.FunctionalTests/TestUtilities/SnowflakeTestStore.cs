@@ -3,14 +3,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Snowflake.Data.Client;
 using System.Data.Common;
+using EFCore.Snowflake.Storage;
 
 namespace EFCore.Snowflake.FunctionalTests.TestUtilities;
 
 public class SnowflakeTestStore : RelationalTestStore
 {
+    private readonly string? _schemaOverride;
+
     public SnowflakeTestStore(string name, string? schemaOverride, bool shared)
         : base(name, shared, new SnowflakeDbConnection(CreateConnectionString(name, schemaOverride)))
     {
+        _schemaOverride = schemaOverride;
     }
 
     public static SnowflakeTestStore Create(string name, string? schemaOverride) => new(name, schemaOverride, shared: false);
@@ -111,28 +115,50 @@ public class SnowflakeTestStore : RelationalTestStore
         }
         else
         {
-            await ExecuteNonQueryAsync(connection, $"CREATE DATABASE \"{ToDbName(Name).Replace("\"", "\"\"")}\"");
+            await ExecuteNonQueryAsync(connection, $"CREATE DATABASE {ToDbLiteral(ToDbName(Name))}");
+            if (_schemaOverride != null)
+            {
+                await using SnowflakeDbConnection connectionForSchema = new(CreateConnectionString(Name));
+                await ExecuteNonQueryAsync(connectionForSchema, $"CREATE SCHEMA IF NOT EXISTS {ToDbLiteral(ToDbName(_schemaOverride))}");
+            }
         }
+    }
+
+    private static string ToDbLiteral(string name)
+    {
+        return $"\"{name.Replace("\"", "\"\"")}\"";
     }
 
     private async Task<bool> DatabaseExists(SnowflakeDbConnection connection)
     {
-        DbCommand dbExistsCommand = connection.CreateCommand();
-        string dbName = ToDbName(Name);
-        dbExistsCommand.CommandText =
-            $@"SHOW DATABASES STARTS WITH '{SnowflakeStringLikeEscape.EscapeSqlLiteral(dbName)}';";
-        await using var reader = await dbExistsCommand.ExecuteReaderAsync();
-        IEnumerable<(DbColumn c, int i)> cols = reader.GetColumnSchema().Select((c, i) => (c, i));
-        int nameColOrdinal = cols.Single(c => c.c.ColumnName == "name").i;
-
-        while (await reader.ReadAsync().ConfigureAwait(false))
+        try
         {
-            if (reader.GetString(nameColOrdinal) == dbName)
+            DbCommand dbExistsCommand = connection.CreateCommand();
+            string dbName = ToDbName(Name);
+            dbExistsCommand.CommandText =
+                $@"SHOW DATABASES STARTS WITH '{SnowflakeStringLikeEscape.EscapeSqlLiteral(dbName)}';";
+            await using var reader = await dbExistsCommand.ExecuteReaderAsync();
+            IEnumerable<(DbColumn c, int i)> cols = reader.GetColumnSchema().Select((c, i) => (c, i));
+            int nameColOrdinal = cols.Single(c => c.c.ColumnName == "name").i;
+
+            while (await reader.ReadAsync().ConfigureAwait(false))
             {
-                return true;
+                if (reader.GetString(nameColOrdinal) == dbName)
+                {
+                    return true;
+                }
             }
         }
+        catch (Exception e)
+        {
+            if (SnowflakeDatabaseCreator.IsNoDbException(e))
+            {
+                return false;
+            }
 
+            throw;
+        }
+        
         return false;
     }
 

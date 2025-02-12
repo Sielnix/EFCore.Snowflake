@@ -277,7 +277,7 @@ public class SnowflakeDatabaseCreator : RelationalDatabaseCreator
         return field.GetValue(null);
     }
 
-    private bool IsNoDbException(Exception e)
+    internal static bool IsNoDbException(Exception e)
     {
         return e.GetAllExceptions().Any(ie =>
             ie is SnowflakeDbException { ErrorCode: DbNotExistsOrNotAuthorizedErrorCode });
