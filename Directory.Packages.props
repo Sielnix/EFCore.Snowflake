@@ -1,6 +1,6 @@
   <Project>
   <PropertyGroup>
-    <EFCoreVersion>9.0.1</EFCoreVersion>
+    <EFCoreVersion>9.0.2</EFCoreVersion>
     <MicrosoftExtensionsVersion>9.0.0</MicrosoftExtensionsVersion>
   </PropertyGroup>
 
