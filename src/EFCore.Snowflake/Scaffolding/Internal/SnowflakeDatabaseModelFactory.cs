@@ -1,10 +1,3 @@
-using System.Data;
-using System.Data.Common;
-using System.Globalization;
-using System.Numerics;
-using System.Text;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using EFCore.Snowflake.Extensions;
 using EFCore.Snowflake.Internal;
 using EFCore.Snowflake.Metadata;
@@ -18,6 +11,13 @@ using Microsoft.EntityFrameworkCore.Scaffolding;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Snowflake.Data.Client;
+using System.Data;
+using System.Data.Common;
+using System.Globalization;
+using System.Numerics;
+using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace EFCore.Snowflake.Scaffolding.Internal;
 
@@ -229,6 +229,26 @@ WHERE {schemaFilter("SEQUENCE_SCHEMA")}
         string databaseName,
         Func<string, string, string>? tableFilter)
     {
+        List<DatabaseTable> tables = GetTablesList(connection, tableFilter);
+        tables.AddRange(GetHybridTables(connection, tableFilter));
+
+        if (tables.Any())
+        {
+            var tablesDict = tables.ToDictionary(t => GetTableId(t));
+
+            GetColumns(connection, databaseName, tablesDict);
+            GetPrimaryKeys(connection, databaseName, tables);
+            GetUniqueKeys(connection, databaseName, tablesDict);
+            GetForeignKeys(connection, databaseName, tablesDict);
+        }
+
+        return tables;
+    }
+
+    private List<DatabaseTable> GetTablesList(
+        DbConnection connection,
+        Func<string, string, string>? tableFilter)
+    {
         string[] supportedTableTypes = ["BASE TABLE", "VIEW", "MATERIALIZED VIEW"];
 
         string tableTypeFilter = InFilter(supportedTableTypes);
@@ -245,8 +265,10 @@ FROM
     INFORMATION_SCHEMA.TABLES
 WHERE
     TABLE_TYPE {tableTypeFilter}
-    {fullTableFilter}
-";
+    
+        {fullTableFilter}
+
+        ";
 
         List<DatabaseTable> tables = new();
         using var command = connection.CreateCommand();
@@ -290,14 +312,61 @@ WHERE
             tables.Add(table);
         }
 
-        if (tables.Any())
-        {
-            var tablesDict = tables.ToDictionary(t => GetTableId(t));
+        return tables;
+    }
 
-            GetColumns(connection, databaseName, tablesDict);
-            GetPrimaryKeys(connection, databaseName, tables);
-            GetUniqueKeys(connection, databaseName, tablesDict);
-            GetForeignKeys(connection, databaseName, tablesDict);
+    private List<DatabaseTable> GetHybridTables(
+        DbConnection connection,
+        Func<string, string, string>? tableFilter)
+    {
+        using var hybridTablesViewCommand = connection.CreateCommand();
+        hybridTablesViewCommand.CommandText =
+            "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA='INFORMATION_SCHEMA' AND TABLE_NAME = 'HYBRID_TABLES'";
+
+        using var hybridViewReader = hybridTablesViewCommand.ExecuteReader();
+        if (!hybridViewReader.Read())
+        {
+            // hybrid tables view doesn't exist
+            return [];
+        }
+
+        string fullTableFilter =
+            tableFilter is null
+            ? string.Empty
+            : $"WHERE {tableFilter("SCHEMA", "NAME")}";
+
+        string query = @$"
+SELECT
+    SCHEMA, NAME, COMMENT
+FROM
+    INFORMATION_SCHEMA.HYBRID_TABLES
+{fullTableFilter}
+
+        ";
+
+        List<DatabaseTable> tables = new();
+        using var command = connection.CreateCommand();
+        command.CommandText = query;
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            string schema = reader.GetString("SCHEMA");
+            string tableName = reader.GetString("NAME");
+            string? comment = null;
+            if (!reader.IsDBNull("COMMENT"))
+            {
+                comment = reader.GetString("COMMENT");
+            }
+
+            DatabaseTable table = new()
+            {
+                Name = tableName,
+                Schema = schema,
+                Comment = comment,
+                [SnowflakeAnnotationNames.TableType] = SnowflakeTableType.Hybrid
+            };
+
+            tables.Add(table);
         }
 
         return tables;

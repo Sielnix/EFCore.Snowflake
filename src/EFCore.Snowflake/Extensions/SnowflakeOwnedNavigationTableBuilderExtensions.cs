@@ -15,4 +15,9 @@ public static class SnowflakeOwnedNavigationTableBuilderExtensions
     {
         tableBuilder.Metadata.SetTableType(SnowflakeTableType.Transient);
     }
+
+    public static void IsHybrid(this OwnedNavigationTableBuilder tableBuilder)
+    {
+        tableBuilder.Metadata.SetTableType(SnowflakeTableType.Hybrid);
+    }
 }

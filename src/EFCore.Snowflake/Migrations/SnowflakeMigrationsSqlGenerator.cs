@@ -272,6 +272,7 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
         {
             SnowflakeTableType.Permanent => string.Empty,
             SnowflakeTableType.Transient => " TRANSIENT",
+            SnowflakeTableType.Hybrid => " HYBRID",
             _ => throw new ArgumentOutOfRangeException(nameof(tableType), tableType, null)
         };
 
