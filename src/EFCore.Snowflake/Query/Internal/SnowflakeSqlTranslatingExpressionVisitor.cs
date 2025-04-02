@@ -27,6 +27,47 @@ public class SnowflakeSqlTranslatingExpressionVisitor : RelationalSqlTranslating
     private static readonly MethodInfo EscapeLikePatternParameterMethod =
         typeof(SnowflakeSqlTranslatingExpressionVisitor).GetTypeInfo().GetDeclaredMethod(nameof(ConstructLikePatternParameter))!;
 
+    private static readonly IReadOnlyDictionary<ExpressionType, IReadOnlyCollection<Type>> RestrictedBinaryExpressions
+        = new Dictionary<ExpressionType, IReadOnlyCollection<Type>>
+        {
+            [ExpressionType.Add] = new HashSet<Type>
+            {
+                typeof(TimeSpan)
+            },
+            [ExpressionType.Divide] = new HashSet<Type>
+            {
+                typeof(TimeSpan),
+            },
+            [ExpressionType.GreaterThan] = new HashSet<Type>
+            {
+                typeof(TimeSpan),
+            },
+            [ExpressionType.GreaterThanOrEqual] = new HashSet<Type>
+            {
+                typeof(TimeSpan),
+            },
+            [ExpressionType.LessThan] = new HashSet<Type>
+            {
+                typeof(TimeSpan),
+            },
+            [ExpressionType.LessThanOrEqual] = new HashSet<Type>
+            {
+                typeof(TimeSpan),
+            },
+            [ExpressionType.Modulo] = new HashSet<Type>
+            {
+                typeof(TimeSpan)
+            },
+            [ExpressionType.Multiply] = new HashSet<Type>
+            {
+                typeof(TimeSpan),
+            },
+            [ExpressionType.Subtract] = new HashSet<Type>
+            {
+                typeof(TimeSpan)
+            }
+        };
+    
     private const char LikeEscapeChar = '\\';
     private const string LikeEscapeCharString = "\\";
 
@@ -44,6 +85,28 @@ public class SnowflakeSqlTranslatingExpressionVisitor : RelationalSqlTranslating
     {
         _queryCompilationContext = queryCompilationContext;
         _sqlExpressionFactory = dependencies.SqlExpressionFactory;
+    }
+
+    protected override Expression VisitBinary(BinaryExpression binaryExpression)
+    {
+        Expression baseResult = base.VisitBinary(binaryExpression);
+
+        if (baseResult is SqlBinaryExpression sqlBinary)
+        {
+            if (RestrictedBinaryExpressions.TryGetValue(sqlBinary.OperatorType, out var restrictedTypes))
+            {
+                Type leftType = sqlBinary.Left.Type;
+                Type rightType = sqlBinary.Right.Type;
+
+                if (restrictedTypes.Contains(leftType) ||
+                    restrictedTypes.Contains(rightType))
+                {
+                    return QueryCompilationContext.NotTranslatedExpression;
+                }
+            }
+        }
+
+        return baseResult;
     }
 
 
@@ -168,7 +231,7 @@ public class SnowflakeSqlTranslatingExpressionVisitor : RelationalSqlTranslating
                     // simple LIKE
                     translation = patternConstant.Value switch
                     {
-                        null => _sqlExpressionFactory.Like(translatedInstance, _sqlExpressionFactory.Constant(null, stringTypeMapping)),
+                        null => _sqlExpressionFactory.Like(translatedInstance, _sqlExpressionFactory.Constant(null, typeof(string), stringTypeMapping)),
 
                         // In .NET, all strings start with/end with/contain the empty string, but SQL LIKE return false for empty patterns.
                         // Return % which always matches instead.

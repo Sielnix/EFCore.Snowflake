@@ -10,6 +10,16 @@ internal class SnowflakeAnnotationProvider : RelationalAnnotationProvider
     {
     }
 
+    public override IEnumerable<IAnnotation> For(ISequence sequence, bool designTime)
+    {
+        if (!designTime)
+        {
+            return [];
+        }
+
+        return sequence.GetAnnotations();
+    }
+
     public override IEnumerable<IAnnotation> For(IColumn column, bool designTime)
     {
         if (!designTime)

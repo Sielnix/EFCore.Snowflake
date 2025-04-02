@@ -20,6 +20,12 @@ public class SnowflakeTimeOnlyMethodTranslator : IMethodCallTranslator
     private static readonly MethodInfo Add = typeof(TimeOnly).GetRuntimeMethod(
         nameof(TimeOnly.Add), new[] { typeof(TimeSpan) })!;
 
+    private static readonly MethodInfo FromDateTime = typeof(TimeOnly).GetRuntimeMethod(
+        nameof(TimeOnly.FromDateTime), [typeof(DateTime)])!;
+
+    private static readonly MethodInfo FromTimeSpan = typeof(TimeOnly).GetRuntimeMethod(
+        nameof(TimeOnly.FromTimeSpan), [typeof(TimeSpan)])!;
+
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
     public SnowflakeTimeOnlyMethodTranslator(ISqlExpressionFactory sqlExpressionFactory)
@@ -30,7 +36,19 @@ public class SnowflakeTimeOnlyMethodTranslator : IMethodCallTranslator
     public SqlExpression? Translate(SqlExpression? instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (method.DeclaringType != typeof(TimeOnly) || instance is null)
+        if (method.DeclaringType != typeof(TimeOnly))
+        {
+            return null;
+        }
+
+        if ((method == FromDateTime || method == FromTimeSpan)
+            && instance is null
+            && arguments.Count == 1)
+        {
+            return _sqlExpressionFactory.Convert(arguments[0], typeof(TimeOnly));
+        }
+
+        if (instance is null)
         {
             return null;
         }
@@ -96,27 +114,27 @@ public class SnowflakeTimeOnlyMethodTranslator : IMethodCallTranslator
         
     }
 
-    private SqlFunctionExpression AddHours(SqlExpression instance, SqlExpression argument)
+    private SqlExpression AddHours(SqlExpression instance, SqlExpression argument)
     {
         return CreateDateAddFunction(instance, argument, "hour");
     }
 
-    private SqlFunctionExpression AddMinutes(SqlExpression instance, SqlExpression argument)
+    private SqlExpression AddMinutes(SqlExpression instance, SqlExpression argument)
     {
         return CreateDateAddFunction(instance, argument, "minute");
     }
 
-    private SqlFunctionExpression AddSeconds(SqlExpression instance, SqlExpression argument)
+    private SqlExpression AddSeconds(SqlExpression instance, SqlExpression argument)
     {
         return CreateDateAddFunction(instance, argument, "second");
     }
 
-    private SqlFunctionExpression AddNanoseconds(SqlExpression instance, SqlExpression argument)
+    private SqlExpression AddNanoseconds(SqlExpression instance, SqlExpression argument)
     {
         return CreateDateAddFunction(instance, argument, "nanoseconds");
     }
 
-    private SqlFunctionExpression CreateDateAddFunction(SqlExpression instance, SqlExpression argument, string datePart)
+    private SqlExpression CreateDateAddFunction(SqlExpression instance, SqlExpression argument, string datePart)
     {
         return _sqlExpressionFactory.Function(
             "DATEADD",

@@ -410,6 +410,35 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
         await Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_sequence_restart_with());
     }
 
+    public override async Task Convert_string_column_to_a_json_column_containing_reference()
+    {
+        var ex = await Assert.ThrowsAsync<SnowflakeDbException>(() =>
+            base.Convert_string_column_to_a_json_column_containing_reference());
+
+        Assert.Equal("22000", ex.SqlState); // cannot change column Name from type VARCHAR to OBJECT
+    }
+
+    public override async Task Convert_string_column_to_a_json_column_containing_required_reference()
+    {
+        var ex = await Assert.ThrowsAsync<SnowflakeDbException>(() =>
+            base.Convert_string_column_to_a_json_column_containing_required_reference());
+
+        Assert.Equal("22000", ex.SqlState); // cannot change column Name from type VARCHAR to OBJECT
+    }
+
+    public override async Task Convert_string_column_to_a_json_column_containing_collection()
+    {
+        var ex = await Assert.ThrowsAsync<SnowflakeDbException>(() =>
+            base.Convert_string_column_to_a_json_column_containing_collection());
+
+        Assert.Equal("22000", ex.SqlState); // cannot change column Name from type VARCHAR to OBJECT
+    }
+
+    public override async Task Add_required_primitive_collection_with_custom_default_value_sql_to_existing_table()
+    {
+        await base.Add_required_primitve_collection_with_custom_default_value_sql_to_existing_table_core("'[3, 2, 1]'");
+    }
+
     public override async Task Add_required_primitve_collection_with_custom_default_value_sql_to_existing_table()
     {
         await base.Add_required_primitve_collection_with_custom_default_value_sql_to_existing_table_core("'[3, 2, 1]'");

@@ -99,6 +99,7 @@ public class SnowflakeDbContext : DbContext
 * Database versioning support
 * Sequences support, along with primary key
 * Transient tables scaffolding and generation - use `entity.ToTable("TABLE_NAME", t => t.IsTransient())`
+* Hybrid tables support, altough indexes and foreign keys are not scaffolded or generated
 
 ## Known issues
 

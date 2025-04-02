@@ -1,4 +1,3 @@
-using EFCore.Snowflake.FunctionalTests.TestUtilities;
 using Microsoft.EntityFrameworkCore.Query;
 using Xunit.Abstractions;
 
@@ -15,10 +14,10 @@ public class CompositeKeysQuerySnowflakeTest : CompositeKeysQueryRelationalTestB
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    protected override bool CanExecuteQueryString => true;
+    //protected override bool CanExecuteQueryString => true;
 
-    private void AssertSql(params string[] expected)
-    {
-        Fixture.TestSqlLoggerFactory.AssertSql(expected);
-    }
+    //private void AssertSql(params string[] expected)
+    //{
+    //    Fixture.TestSqlLoggerFactory.AssertSql(expected);
+    //}
 }

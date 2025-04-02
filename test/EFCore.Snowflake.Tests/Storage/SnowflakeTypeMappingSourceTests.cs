@@ -15,7 +15,7 @@ public class SnowflakeTypeMappingSourceTests
     [InlineData("DATE", typeof(DateOnly), null, null, null, false, false)]
     [InlineData("TIME(9)", typeof(TimeOnly), null, 9, null, false, false)]
     [InlineData("TIMESTAMP_NTZ(9)", typeof(DateTime), null, 9, null, false, false)]
-    [InlineData("TIMESTAMP_LTZ(8)", typeof(DateTime), null, 8, null, false, false)]
+    [InlineData("TIMESTAMP_LTZ(8)", typeof(DateTimeOffset), null, 8, null, false, false)]
     [InlineData("TIMESTAMP_TZ(9)", typeof(DateTimeOffset), null, 9, null, false, false)]
     [InlineData("BINARY(1234)", typeof(byte[]), 1234, null, null, false, false)]
     public void By_StoreType(string typeName, Type type, int? size, int? precision, int? scale, bool fixedLength, bool isUnicode)
@@ -39,6 +39,7 @@ public class SnowflakeTypeMappingSourceTests
     [InlineData("NUMERIC(38,10)", typeof(float), "NUMBER(38,10)", null, 38, 10)]
     [InlineData("TIMESTAMP WITHOUT TIME ZONE", typeof(DateTime), "TIMESTAMP_NTZ(9)", null, 9, null)]
     [InlineData("TIMESTAMP_LTZ", typeof(DateTime), "TIMESTAMP_LTZ(9)", null, 9, null)]
+    [InlineData("TIMESTAMP_LTZ", typeof(DateTimeOffset), "TIMESTAMP_LTZ(9)", null, 9, null)]
     public void By_Store_AndClrType_using_alias_name(string typeName, Type type, string expectedTypeName, int? expectedSize, int? expectedPrecision, int? expectedScale)
     {
         SnowflakeTypeMappingSource sut = CreateTypeMappingSource();

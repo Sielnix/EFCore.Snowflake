@@ -23,6 +23,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;
@@ -87,6 +88,7 @@ public static class SnowflakeServiceCollectionExtensions
             .TryAdd<IMethodCallTranslatorProvider, SnowflakeMethodCallTranslatorProvider>()
             .TryAdd<IUpdateSqlGenerator, SnowflakeUpdateSqlGenerator>()
             .TryAdd<IQuerySqlGeneratorFactory, SnowflakeQuerySqlGeneratorFactory>()
+            .TryAdd<IQueryCompilationContextFactory, SnowflakeQueryCompilationContextFactory>()
             .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, SnowflakeSqlTranslatingExpressionVisitorFactory>()
             .TryAdd<IRelationalCommandBuilderFactory, SnowflakeRelationalCommandBuilderFactory>()
             .TryAddProviderSpecificServices(b => b

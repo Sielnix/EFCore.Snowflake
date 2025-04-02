@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EFCore.Snowflake.Migrations.Internal;
+
 public class SnowflakeMigrator(
     IMigrationsAssembly migrationsAssembly,
     IHistoryRepository historyRepository,
@@ -19,8 +21,13 @@ public class SnowflakeMigrator(
     IModelRuntimeInitializer modelRuntimeInitializer,
     IDiagnosticsLogger<DbLoggerCategory.Migrations> logger,
     IRelationalCommandDiagnosticsLogger commandLogger,
-    IDatabaseProvider databaseProvider)
-    : Migrator(migrationsAssembly,
+    IDatabaseProvider databaseProvider,
+    IMigrationsModelDiffer migrationsModelDiffer,
+    IDesignTimeModel designTimeModel,
+    IDbContextOptions contextOptions,
+    IExecutionStrategy executionStrategy)
+    : Migrator(
+        migrationsAssembly,
         historyRepository,
         databaseCreator,
         migrationsSqlGenerator,
@@ -32,7 +39,11 @@ public class SnowflakeMigrator(
         modelRuntimeInitializer,
         logger,
         commandLogger,
-        databaseProvider)
+        databaseProvider,
+        migrationsModelDiffer,
+        designTimeModel,
+        contextOptions,
+        executionStrategy)
 {
     public override string GenerateScript(
         string? fromMigration = null,

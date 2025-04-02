@@ -1,3 +1,4 @@
+using System.Text.Json;
 using EFCore.Snowflake.Storage.Internal.Mapping;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -48,6 +49,7 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
             { typeof(TimeOnly), SnowflakeTimeOnlyTypeMapping.Default },
             { typeof(DateTime), SnowflakeDateTimeTypeMapping.Default },
             { typeof(DateTimeOffset), SnowflakeDateTimeOffsetTypeMapping.Default },
+            { typeof(JsonElement), SnowflakeJsonTypeMapping.Default }
         };
 
         _storeTypeMappings = new Dictionary<string, RelationalTypeMapping[]>(SnowflakeStoreTypeNames.TypeNameComparer)
@@ -76,7 +78,7 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
                 ]
             },
             { SnowflakeStoreTypeNames.TimestampNtz, [ SnowflakeDateTimeTypeMapping.Default ] },
-            { SnowflakeStoreTypeNames.TimestampLtz, [ SnowflakeDateTimeTypeMapping.LtzMapping] },
+            { SnowflakeStoreTypeNames.TimestampLtz, [ SnowflakeDateTimeOffsetAsLtzTypeMapping.Default, SnowflakeDateTimeAsLtzTypeMapping.Default ] },
             { SnowflakeStoreTypeNames.TimestampTz, [ SnowflakeDateTimeOffsetTypeMapping.Default ] },
         };
 
@@ -160,6 +162,11 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
         {
             return null;
         }
+
+        //if (clrType == typeof(JsonElement) || clrType == typeof(JsonDocument))
+        //{
+        //    return null;
+        //}
 
         if (storeTypeName is not null)
         {
@@ -271,7 +278,7 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
                 int? size;
                 int? precision;
                 int? scale = mappingInfo.Scale ?? mapping.Scale;
-                
+
                 if (mapping.StoreTypePostfix == StoreTypePostfix.Precision)
                 {
                     // efcore gives us precision as size instead of precision when StoreTypePostfix is Precision

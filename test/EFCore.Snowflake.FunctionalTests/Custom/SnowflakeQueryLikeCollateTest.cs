@@ -44,7 +44,7 @@ public class SnowflakeQueryLikeCollateTest : IClassFixture<SnowflakeQueryLikeCol
             modelBuilder.Entity<Item>();
         }
 
-        protected override void Seed(PoolableDbContext context)
+        protected override async Task SeedAsync(PoolableDbContext context)
         {
             context.AddRange(
                 new Item()
@@ -58,7 +58,7 @@ public class SnowflakeQueryLikeCollateTest : IClassFixture<SnowflakeQueryLikeCol
                     SomeText = "lower_text_ÖÜẞß"
                 });
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
         protected override string StoreName => "LikeCollateQuery";
