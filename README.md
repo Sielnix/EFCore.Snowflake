@@ -31,6 +31,18 @@ If you wish to create model from existing Snowflake database, then follow [this]
 
 Please be aware, that Snowflake default naming convention is UPPERCASE, while C# default naming convention is PascalCase. In order to follow Snowflake's uppercase convention when generating new database with code-first approach you have to map each table and column to database name with uppercase. Use `.ToTable("TABLE_NAME")` and `entity.Property(e => e.Id).HasColumnName("ID")` mapping methods.
 
+For global UPPERCASE naming, you can use the `.UseUpperSnakeCaseNamingConvention()` function from the nuget package [EFCore.NamingConventions](https://www.nuget.org/packages/EFCore.NamingConventions).
+
+```C#
+// Replace 'YourDbContext' with the name of your own DbContext derived class.
+services.AddDbContext<YourDbContext>(
+    dbContextOptions => dbContextOptions
+        .UseSnowflake(connectionString)
+        .UseUpperSnakeCaseNamingConvention()
+);
+```
+
+
 ## Type mapping
 
 - All basic C# types are supported.
