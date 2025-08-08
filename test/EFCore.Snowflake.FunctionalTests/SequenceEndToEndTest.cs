@@ -185,7 +185,7 @@ public class SequenceEndToEndTest : IAsyncLifetime
             context.Database.EnsureCreatedResiliently();
         }
 
-        const int threadCount = 18; // CHANGED 50 to 18 because of Snowflake limit
+        const int threadCount = 14; // CHANGED 50 to 14 because of Snowflake limit
 
         var tests = new Func<Task>[threadCount];
         for (var i = 0; i < threadCount; i++)
