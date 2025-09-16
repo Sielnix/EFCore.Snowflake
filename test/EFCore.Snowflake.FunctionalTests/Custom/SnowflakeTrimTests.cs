@@ -63,8 +63,7 @@ public class SnowflakeTrimTests(SnowflakeTrimTests.SnowflakeTrimFixture fixture)
         string trimRight = await stringQuery.Select(q => q.TrimEnd('a', 'b')).SingleAsync();
         Assert.Equal("ababXD", trimRight);
     }
-
-
+    
     protected DbContext CreateContext() => fixture.CreateContext();
 
     protected class Item
@@ -87,11 +86,10 @@ public class SnowflakeTrimTests(SnowflakeTrimTests.SnowflakeTrimFixture fixture)
             context.AddRange(new Item() { Id = 1, Value = "  val  " });
             context.AddRange(new Item() { Id = 2, Value = "ababXDbabaa" });
             
-
             await context.SaveChangesAsync();
         }
 
-        protected override string StoreName => "SnowflakeDateTimeOffset";
+        protected override string StoreName => "SnowflakeTrim";
         protected override ITestStoreFactory TestStoreFactory
             => SnowflakeTestStoreFactory.Instance;
     }
