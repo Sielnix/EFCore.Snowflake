@@ -1,9 +1,10 @@
-using System.Reflection;
 using EFCore.Snowflake.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace EFCore.Snowflake.Query.ExpressionTranslators;
 
@@ -20,6 +21,33 @@ public class SnowflakeStringMethodTranslator : IMethodCallTranslator
 
     private static readonly MethodInfo SubstringMethodInfoWithTwoArgs
         = typeof(string).GetRuntimeMethod(nameof(string.Substring), new[] { typeof(int), typeof(int) })!;
+
+    private static readonly MethodInfo TrimStartMethodInfoWithoutArgs
+        = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), Type.EmptyTypes)!;
+
+    private static readonly MethodInfo TrimStartMethodInfoWithCharArg
+        = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), [typeof(char)])!;
+
+    private static readonly MethodInfo TrimStartMethodInfoWithCharArrayArg
+        = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), [typeof(char[])])!;
+
+    private static readonly MethodInfo TrimEndMethodInfoWithoutArgs
+        = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), Type.EmptyTypes)!;
+
+    private static readonly MethodInfo TrimEndMethodInfoWithCharArg
+        = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), [typeof(char)])!;
+
+    private static readonly MethodInfo TrimEndMethodInfoWithCharArrayArg
+        = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), [typeof(char[])])!;
+
+    private static readonly MethodInfo TrimMethodInfoWithoutArgs
+        = typeof(string).GetRuntimeMethod(nameof(string.Trim), Type.EmptyTypes)!;
+
+    private static readonly MethodInfo TrimMethodInfoWithCharArg
+        = typeof(string).GetRuntimeMethod(nameof(string.Trim), [typeof(char)])!;
+    
+    private static readonly MethodInfo TrimMethodInfoWithCharArrayArg
+        = typeof(string).GetRuntimeMethod(nameof(string.Trim), [typeof(char[])])!;
 
     private static readonly MethodInfo FirstOrDefaultMethodInfoWithoutArgs
         = typeof(Enumerable).GetRuntimeMethods().Single(
@@ -91,6 +119,27 @@ public class SnowflakeStringMethodTranslator : IMethodCallTranslator
                     method.ReturnType,
                     instance.TypeMapping);
             }
+
+            if (TrimStartMethodInfoWithoutArgs.Equals(method)
+                || TrimStartMethodInfoWithCharArg.Equals(method)
+                || TrimStartMethodInfoWithCharArrayArg.Equals(method))
+            {
+                return ProcessTrimMethod(instance, arguments, "LTRIM");
+            }
+
+            if (TrimEndMethodInfoWithoutArgs.Equals(method)
+                || TrimEndMethodInfoWithCharArg.Equals(method)
+                || TrimEndMethodInfoWithCharArrayArg.Equals(method))
+            {
+                return ProcessTrimMethod(instance, arguments, "RTRIM");
+            }
+
+            if (TrimMethodInfoWithoutArgs.Equals(method)
+                || TrimMethodInfoWithCharArg.Equals(method)
+                || TrimMethodInfoWithCharArrayArg.Equals(method))
+            {
+                return ProcessTrimMethod(instance, arguments, "TRIM");
+            }
         }
 
         if (FirstOrDefaultMethodInfoWithoutArgs.Equals(method))
@@ -126,5 +175,27 @@ public class SnowflakeStringMethodTranslator : IMethodCallTranslator
         }
 
         return null;
+    }
+
+    private SqlExpression? ProcessTrimMethod(SqlExpression instance, IReadOnlyList<SqlExpression> arguments, string functionName)
+    {
+        SqlExpression? charactersToTrim = null;
+        if (arguments.Count > 0 && arguments[0] is SqlConstantExpression { Value: var charactersToTrimValue })
+        {
+            charactersToTrim = charactersToTrimValue switch
+            {
+                char singleChar => _sqlExpressionFactory.Constant(singleChar.ToString(), instance.TypeMapping),
+                char[] charArray => _sqlExpressionFactory.Constant(new string(charArray), instance.TypeMapping),
+                _ => throw new ArgumentException("Invalid parameter type for string.Trim")
+            };
+        }
+
+        return _sqlExpressionFactory.Function(
+            functionName,
+            arguments: charactersToTrim is null ? [instance] : [instance, charactersToTrim],
+            nullable: true,
+            argumentsPropagateNullability: charactersToTrim is null ? [true] : [true, true],
+            instance.Type,
+            instance.TypeMapping);
     }
 }
