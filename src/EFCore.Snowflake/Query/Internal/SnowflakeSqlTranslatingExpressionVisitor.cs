@@ -5,6 +5,10 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using EFCore.Snowflake.Extensions;
+using EFCore.Snowflake.Storage.Internal.Mapping;
+using EFCore.Snowflake.Utilities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
@@ -67,7 +71,7 @@ public class SnowflakeSqlTranslatingExpressionVisitor : RelationalSqlTranslating
                 typeof(TimeSpan)
             }
         };
-    
+
     private const char LikeEscapeChar = '\\';
     private const string LikeEscapeCharString = "\\";
 
@@ -151,7 +155,303 @@ public class SnowflakeSqlTranslatingExpressionVisitor : RelationalSqlTranslating
             return translation3;
         }
 
+        if (method.IsGenericMethod
+            && method.GetGenericMethodDefinition() == QueryableMethods.Contains
+            && methodCallExpression.Arguments[0] is MethodCallExpression { Method.Name: nameof(Queryable.AsQueryable) } asQueryableCall
+            && TryTranslateArrayContains(asQueryableCall.Arguments[0], methodCallExpression.Arguments[1], out var arrayContainsTranslation))
+        {
+            return arrayContainsTranslation;
+        }
+
+        if (method.DeclaringType == typeof(Queryable)
+            && (method.Name == nameof(Queryable.Any) || method.Name == nameof(Queryable.All))
+            && methodCallExpression.Arguments.Count == 2
+            && methodCallExpression.Arguments[0] is MethodCallExpression { Method.Name: nameof(Queryable.AsQueryable) } arrayAnyAllSource
+            && TryTranslateArrayElementPredicate(
+                arrayAnyAllSource.Arguments[0], methodCallExpression.Arguments[1], isAny: method.Name == nameof(Queryable.Any),
+                out var arrayAnyAllTranslation))
+        {
+            return arrayAnyAllTranslation;
+        }
+
+        // Parameterless arrayProperty.Any()
+        if (method.DeclaringType == typeof(Queryable)
+            && method.Name == nameof(Queryable.Any)
+            && methodCallExpression.Arguments.Count == 1
+            && methodCallExpression.Arguments[0] is MethodCallExpression { Method.Name: nameof(Queryable.AsQueryable) } arrayAnySource
+            && TryTranslateArrayAny(arrayAnySource.Arguments[0], out var arrayAnyTranslation))
+        {
+            return arrayAnyTranslation;
+        }
+
         return base.VisitMethodCall(methodCallExpression);
+    }
+
+    private bool TryTranslateArrayAny(Expression collectionAccessExpression, [NotNullWhen(true)] out SqlExpression? translation)
+    {
+        if (Visit(collectionAccessExpression) is not SqlExpression arrayColumn)
+        {
+            translation = null;
+            return false;
+        }
+
+        SqlExpression arraySize = _sqlExpressionFactory.Function(
+            "ARRAY_SIZE",
+            new[] { arrayColumn },
+            nullable: true,
+            argumentsPropagateNullability: Statics.TrueArrays[1],
+            typeof(int));
+
+        SqlExpression sizeGreaterThanZero = _sqlExpressionFactory.GreaterThan(arraySize, _sqlExpressionFactory.Constant(0));
+
+        SqlExpression nvl = _sqlExpressionFactory.Function(
+            "NVL",
+            new[] { sizeGreaterThanZero, _sqlExpressionFactory.Constant(false) },
+            nullable: true,
+            argumentsPropagateNullability: Statics.TrueArrays[2],
+            typeof(bool));
+
+        translation = _sqlExpressionFactory.ApplyDefaultTypeMapping(nvl);
+        return true;
+    }
+
+    private bool TryTranslateArrayElementPredicate(
+        Expression collectionAccessExpression,
+        Expression predicateExpression,
+        bool isAny,
+        [NotNullWhen(true)] out SqlExpression? translation)
+    {
+        translation = null;
+
+        (Type? entityClrType, string? propertyName) = collectionAccessExpression switch
+        {
+            MethodCallExpression { Method.Name: nameof(EF.Property) } efPropertyCall
+                when efPropertyCall.Arguments[1] is ConstantExpression { Value: string name }
+                => (efPropertyCall.Arguments[0].Type, name),
+            MemberExpression { Expression: not null } memberExpression
+                => (memberExpression.Expression.Type, memberExpression.Member.Name),
+            _ => (null, null)
+        };
+
+        if (entityClrType is null || propertyName is null)
+        {
+            return false;
+        }
+
+        IEntityType? entityType = _queryCompilationContext.Model.FindEntityType(entityClrType);
+        IProperty? arrayProperty = entityType?.FindProperty(propertyName);
+        IReadOnlyList<IProperty>? primaryKeyProperties = entityType?.FindPrimaryKey()?.Properties;
+
+        // This translation strategy needs a single-column primary key to correlate the derived table back to the
+        // entity being queried; composite keys and keyless entities aren't supported here.
+        // TODO: support composite primary keys (group by / row-value IN on all key columns).
+        if (entityType is null || arrayProperty is null || primaryKeyProperties is not { Count: 1 })
+        {
+            return false;
+        }
+
+        string? table = entityType.GetTableName();
+        string? arrayColumn = arrayProperty.GetColumnName();
+        string? pkColumn = primaryKeyProperties[0].GetColumnName();
+        if (table is null || arrayColumn is null || pkColumn is null)
+        {
+            return false;
+        }
+
+        if (predicateExpression is not UnaryExpression { Operand: LambdaExpression lambda }
+            || lambda.Body is not MethodCallExpression
+            {
+                Method: { Name: nameof(string.Contains) or nameof(string.StartsWith) or nameof(string.EndsWith) }
+            } predicateCall
+            || predicateCall.Object != lambda.Parameters[0]
+            || predicateCall.Arguments.Count != 1)
+        {
+            return false;
+        }
+
+        StartsEndsWithContains predicateType = predicateCall.Method.Name switch
+        {
+            nameof(string.StartsWith) => StartsEndsWithContains.StartsWith,
+            nameof(string.EndsWith) => StartsEndsWithContains.EndsWith,
+            _ => StartsEndsWithContains.Contains
+        };
+
+        if (!TryBuildLikePattern(predicateCall.Arguments[0], predicateType, out SqlExpression? likePattern))
+        {
+            return false;
+        }
+
+        SqlExpression? arrayColumnForEmptyCheck = isAny ? null : Visit(collectionAccessExpression) as SqlExpression;
+        if (!isAny && arrayColumnForEmptyCheck is null)
+        {
+            return false;
+        }
+
+        string quotedSchema = entityType.GetSchema() is { } schema
+            ? $"{QuoteIdentifier(schema)}.{QuoteIdentifier(table)}"
+            : QuoteIdentifier(table);
+        string quotedArrayColumn = QuoteIdentifier(arrayColumn);
+        string quotedPkColumn = QuoteIdentifier(pkColumn);
+
+        const string outerAlias = "flt_src";
+        const string flattenAlias = "flt_elem";
+
+        SqlExpression elementValue = _sqlExpressionFactory.Fragment($"{flattenAlias}.\"VALUE\"::STRING");
+        SqlExpression elementPredicate = _sqlExpressionFactory.Like(
+            elementValue, likePattern, _sqlExpressionFactory.Constant(LikeEscapeCharString));
+
+        // For All(predicate), an element fails the condition when the predicate is false; count those instead.
+        if (!isAny)
+        {
+            elementPredicate = _sqlExpressionFactory.Not(elementPredicate);
+        }
+
+        SqlExpression countIf = _sqlExpressionFactory.Function(
+            "COUNT_IF",
+            new[] { elementPredicate },
+            nullable: true,
+            argumentsPropagateNullability: Statics.TrueArrays[1],
+            typeof(int));
+
+        SqlExpression havingCondition = isAny
+            ? _sqlExpressionFactory.NotEqual(countIf, _sqlExpressionFactory.Constant(0))
+            : _sqlExpressionFactory.Equal(countIf, _sqlExpressionFactory.Constant(0));
+
+        string subquerySqlPrefix =
+            $"SELECT {outerAlias}.{quotedPkColumn} " +
+            $"FROM {quotedSchema} AS {outerAlias}, LATERAL FLATTEN(INPUT => {outerAlias}.{quotedArrayColumn}) AS {flattenAlias} " +
+            $"GROUP BY {outerAlias}.{quotedPkColumn} HAVING";
+
+        SqlExpression subquery = _sqlExpressionFactory.Function(
+            subquerySqlPrefix,
+            new[] { havingCondition },
+            nullable: true,
+            argumentsPropagateNullability: Statics.TrueArrays[1],
+            typeof(bool));
+
+        SqlExpression inExpression = _sqlExpressionFactory.Function(
+            $"{quotedPkColumn} IN",
+            new[] { subquery },
+            nullable: true,
+            argumentsPropagateNullability: Statics.TrueArrays[1],
+            typeof(bool));
+
+        // Guard against NULL from the IN check (e.g. no rows at all) so this always evaluates to a proper boolean.
+        SqlExpression nvl = _sqlExpressionFactory.Function(
+            "NVL",
+            new[] { inExpression, _sqlExpressionFactory.Constant(false) },
+            nullable: true,
+            argumentsPropagateNullability: Statics.TrueArrays[2],
+            typeof(bool));
+
+        SqlExpression result = nvl;
+
+        if (!isAny && arrayColumnForEmptyCheck is not null)
+        {
+            SqlExpression arraySize = _sqlExpressionFactory.Function(
+                "ARRAY_SIZE",
+                new[] { arrayColumnForEmptyCheck },
+                nullable: true,
+                argumentsPropagateNullability: Statics.TrueArrays[1],
+                typeof(int));
+
+            SqlExpression arrayIsEmptyOrNull = _sqlExpressionFactory.OrElse(
+                _sqlExpressionFactory.IsNull(arrayColumnForEmptyCheck),
+                _sqlExpressionFactory.Equal(arraySize, _sqlExpressionFactory.Constant(0)));
+
+            result = _sqlExpressionFactory.OrElse(arrayIsEmptyOrNull, nvl);
+        }
+
+        translation = _sqlExpressionFactory.ApplyDefaultTypeMapping(result);
+        return true;
+    }
+
+    private bool TryBuildLikePattern(
+        Expression patternValueExpression,
+        StartsEndsWithContains methodType,
+        [NotNullWhen(true)] out SqlExpression? likePattern)
+    {
+        if (Visit(patternValueExpression) is not SqlExpression visited)
+        {
+            likePattern = null;
+            return false;
+        }
+
+        switch (visited)
+        {
+            case SqlConstantExpression { Value: string s }:
+                likePattern = _sqlExpressionFactory.ApplyDefaultTypeMapping(
+                    _sqlExpressionFactory.Constant(BuildLikePatternText(s, methodType)));
+                return true;
+
+            case SqlParameterExpression patternParameter:
+            {
+                var lambda = Expression.Lambda(
+                    Expression.Call(
+                        EscapeLikePatternParameterMethod,
+                        QueryCompilationContext.QueryContextParameter,
+                        Expression.Constant(patternParameter.Name),
+                        Expression.Constant(methodType)),
+                    QueryCompilationContext.QueryContextParameter);
+
+                var escapedPatternParameter =
+                    _queryCompilationContext.RegisterRuntimeParameter(
+                        $"{patternParameter.Name}_{methodType.ToString().ToLower(CultureInfo.InvariantCulture)}", lambda);
+
+                likePattern = new SqlParameterExpression(
+                    escapedPatternParameter.Name!, escapedPatternParameter.Type, Dependencies.TypeMappingSource.FindMapping(typeof(string)));
+                return true;
+            }
+
+            default:
+                likePattern = null;
+                return false;
+        }
+    }
+
+    private static string BuildLikePatternText(string pattern, StartsEndsWithContains methodType)
+        => methodType switch
+        {
+            StartsEndsWithContains.StartsWith => EscapeLikePattern(pattern) + '%',
+            StartsEndsWithContains.EndsWith => '%' + EscapeLikePattern(pattern),
+            StartsEndsWithContains.Contains => $"%{EscapeLikePattern(pattern)}%",
+            _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
+        };
+
+    private static string QuoteIdentifier(string name) => $"\"{name.Replace("\"", "\"\"")}\"";
+
+    private bool TryTranslateArrayContains(
+        Expression collectionExpression,
+        Expression valueExpression,
+        [NotNullWhen(true)] out SqlExpression? translation)
+    {
+        if (Visit(collectionExpression) is SqlExpression collection
+            && Visit(valueExpression) is SqlExpression value)
+        {
+            value = _sqlExpressionFactory.ApplyDefaultTypeMapping(value);
+
+            // Array elements are stored as VARIANT, so the searched value must be cast to VARIANT to compare equal.
+            SqlExpression valueAsVariant = _sqlExpressionFactory.Function(
+                "TO_VARIANT",
+                new[] { value },
+                nullable: true,
+                argumentsPropagateNullability: Statics.TrueArrays[1],
+                typeof(object),
+                SnowflakeVariantTypeMapping.Default);
+
+            SqlExpression arrayContains = _sqlExpressionFactory.Function(
+                "ARRAY_CONTAINS",
+                new[] { valueAsVariant, collection },
+                nullable: true,
+                argumentsPropagateNullability: Statics.TrueArrays[2],
+                returnType: typeof(bool));
+
+            translation = _sqlExpressionFactory.ApplyDefaultTypeMapping(arrayContains);
+            return true;
+        }
+
+        translation = null;
+        return false;
     }
 
     private Expression TranslateByteArrayElementAccess(Expression array, Expression index, Type resultType)
