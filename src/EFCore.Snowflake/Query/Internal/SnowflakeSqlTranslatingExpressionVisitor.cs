@@ -259,7 +259,7 @@ public class SnowflakeSqlTranslatingExpressionVisitor : RelationalSqlTranslating
                 }
 
             case SqlParameterExpression patternParameter
-                when patternParameter.Name.StartsWith(QueryCompilationContext.QueryParameterPrefix, StringComparison.Ordinal):
+                when patternParameter.Name.StartsWith("__", StringComparison.Ordinal):
                 {
                     // The pattern is a parameter, register a runtime parameter that will contain the rewritten LIKE pattern, where
                     // all special characters have been escaped.
@@ -348,7 +348,7 @@ public class SnowflakeSqlTranslatingExpressionVisitor : RelationalSqlTranslating
         QueryContext queryContext,
         string baseParameterName,
         StartsEndsWithContains methodType)
-        => queryContext.ParameterValues[baseParameterName] switch
+        => queryContext.Parameters[baseParameterName] switch
         {
             null => null,
 

@@ -1,10 +1,11 @@
 using EFCore.Snowflake.FunctionalTests.TestUtilities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace EFCore.Snowflake.FunctionalTests.Query;
 
-public class EntitySplittingQuerySnowflakeTest : EntitySplittingQueryTestBase
+public class EntitySplittingQuerySnowflakeTest() : EntitySplittingQueryTestBase(new NonSharedFixture())
 {
     protected override ITestStoreFactory TestStoreFactory => SnowflakeTestStoreFactory.Instance;
 
