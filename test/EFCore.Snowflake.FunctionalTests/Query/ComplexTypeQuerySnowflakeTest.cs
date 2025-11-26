@@ -54,14 +54,6 @@ public class ComplexTypeQuerySnowflakeTest : ComplexTypeQueryTestBase<ComplexTyp
         AssertSql();
     }
 
-    public override async Task Complex_type_equals_null(bool async)
-    {
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => base.Complex_type_equals_null(async));
-
-        Assert.Equal(RelationalStrings.CannotCompareComplexTypeToNull, exception.Message);
-
-        AssertSql();
-    }
 
     public override async Task Subquery_over_struct_complex_type(bool async)
     {
@@ -106,9 +98,7 @@ public class ComplexTypeQuerySnowflakeTest : ComplexTypeQueryTestBase<ComplexTyp
     // purpose of knowing that it's there.
     public override async Task Project_complex_type_via_optional_navigation(bool async)
     {
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => base.Project_complex_type_via_optional_navigation(async));
-
-        Assert.Equal(RelationalStrings.CannotProjectNullableComplexType("Customer.ShippingAddress#Address"), exception.Message);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => base.Project_complex_type_via_optional_navigation(async));
     }
 
     // This test fails because when OptionalCustomer is null, we get all-null results because of the LEFT JOIN, and we materialize this
@@ -116,10 +106,7 @@ public class ComplexTypeQuerySnowflakeTest : ComplexTypeQueryTestBase<ComplexTyp
     // purpose of knowing that it's there.
     public override async Task Project_struct_complex_type_via_optional_navigation(bool async)
     {
-        var exception =
-            await Assert.ThrowsAsync<InvalidOperationException>(() => base.Project_struct_complex_type_via_optional_navigation(async));
-
-        Assert.Equal(RelationalStrings.CannotProjectNullableComplexType("ValuedCustomer.ShippingAddress#AddressStruct"), exception.Message);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => base.Project_struct_complex_type_via_optional_navigation(async));
     }
 
     public class ComplexTypeQuerySnowflakeFixture : ComplexTypeQueryRelationalFixtureBase

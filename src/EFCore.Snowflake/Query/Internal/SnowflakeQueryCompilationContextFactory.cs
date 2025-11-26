@@ -14,11 +14,4 @@ public class SnowflakeQueryCompilationContextFactory : RelationalQueryCompilatio
     {
         return new SnowflakeQueryCompilationContext(Dependencies, RelationalDependencies, async);
     }
-
-    //[Experimental(EFDiagnostics.PrecompiledQueryExperimental)]
-    [Experimental("EF9100")]
-    public override QueryCompilationContext CreatePrecompiled(bool async, IReadOnlySet<string> nonNullableReferenceTypeParameters)
-    {
-        return new SnowflakeQueryCompilationContext(Dependencies, RelationalDependencies, async, precompiling: true, nonNullableReferenceTypeParameters);
-    }
 }

@@ -4,14 +4,9 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace EFCore.Snowflake.FunctionalTests;
 
-public class MaterializationInterceptionSnowflakeTest :
-    MaterializationInterceptionTestBase<MaterializationInterceptionSnowflakeTest.SnowflakeLibraryContext>//,
-    //IClassFixture<MaterializationInterceptionSnowflakeTest.MaterializationInterceptionSnowflakeFixture>
+public class MaterializationInterceptionSnowflakeTest() :
+    MaterializationInterceptionTestBase<MaterializationInterceptionSnowflakeTest.SnowflakeLibraryContext>(new NonSharedFixture())
 {
-    //public MaterializationInterceptionSnowflakeTest(MaterializationInterceptionSnowflakeFixture fixture)
-    //    : base(fixture)
-    //{
-    //}
 
     public class SnowflakeLibraryContext(DbContextOptions options) : LibraryContext(options)
     {

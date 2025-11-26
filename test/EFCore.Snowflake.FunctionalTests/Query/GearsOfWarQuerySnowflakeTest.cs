@@ -133,54 +133,6 @@ public class GearsOfWarQuerySnowflakeTest : GearsOfWarQueryRelationalTestBase<Ge
         await base.DateTimeOffset_Date_returns_datetime(async);
     }
 
-    [ConditionalTheory(Skip = "BUG IN .net connector")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task DateTimeOffset_DateAdd_AddDays(bool async)
-    {
-        await base.DateTimeOffset_DateAdd_AddDays(async);
-    }
-
-    [ConditionalTheory(Skip = "BUG IN .net connector")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task DateTimeOffset_DateAdd_AddHours(bool async)
-    {
-        await base.DateTimeOffset_DateAdd_AddHours(async);
-    }
-
-    [ConditionalTheory(Skip = "BUG IN .net connector")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task DateTimeOffset_DateAdd_AddMilliseconds(bool async)
-    {
-        await base.DateTimeOffset_DateAdd_AddMilliseconds(async);
-    }
-
-    [ConditionalTheory(Skip = "BUG IN .net connector")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task DateTimeOffset_DateAdd_AddMinutes(bool async)
-    {
-        await base.DateTimeOffset_DateAdd_AddMinutes(async);
-    }
-
-    [ConditionalTheory(Skip = "BUG IN .net connector")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task DateTimeOffset_DateAdd_AddMonths(bool async)
-    {
-        await base.DateTimeOffset_DateAdd_AddMonths(async);
-    }
-
-    [ConditionalTheory(Skip = "BUG IN .net connector")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task DateTimeOffset_DateAdd_AddSeconds(bool async)
-    {
-        await base.DateTimeOffset_DateAdd_AddSeconds(async);
-    }
-
-    [ConditionalTheory(Skip = "BUG IN .net connector")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task DateTimeOffset_DateAdd_AddYears(bool async)
-    {
-        await base.DateTimeOffset_DateAdd_AddYears(async);
-    }
 
     public override Task DateTimeOffsetNow_minus_timespan(bool async)
         => Assert.ThrowsAsync<InvalidOperationException>(() => base.DateTimeOffsetNow_minus_timespan(async));
@@ -404,82 +356,12 @@ public class GearsOfWarQuerySnowflakeTest : GearsOfWarQueryRelationalTestBase<Ge
             await base.Subquery_projecting_nullable_scalar_contains_nullable_value_needs_null_expansion_negated(async));
     }
 
-    [ConditionalTheory(Skip = "Bug in .net connector when inserting date time offset")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task Time_of_day_datetimeoffset(bool async)
-    {
-        await base.Time_of_day_datetimeoffset(async);
-    }
-
     public override async Task Where_contains_on_navigation_with_composite_keys(bool async)
     {
         await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
             await base.Where_contains_on_navigation_with_composite_keys(async));
     }
 
-    [ConditionalTheory(Skip = "BUG IN .net connector when reading non full hour offset")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task Where_datetimeoffset_date_component(bool async)
-    {
-        await base.Where_datetimeoffset_date_component(async);
-    }
-
-    [ConditionalTheory(Skip = "BUG IN .net connector when reading non full hour offset")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task Where_datetimeoffset_day_component(bool async)
-    {
-        await base.Where_datetimeoffset_day_component(async);
-    }
-
-    [ConditionalTheory(Skip = "BUG IN .net connector when reading non full hour offset")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task Where_datetimeoffset_dayofyear_component(bool async)
-    {
-        await base.Where_datetimeoffset_dayofyear_component(async);
-    }
-
-    [ConditionalTheory(Skip = "Bug in .net connector when inserting date time offset")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task Where_datetimeoffset_hour_component(bool async)
-    {
-        await base.Where_datetimeoffset_hour_component(async);
-    }
-
-    [ConditionalTheory(Skip = "TODO: implement in SnowflakeDateTimeMemberTranslator")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task Where_datetimeoffset_millisecond_component(bool async)
-    {
-        await base.Where_datetimeoffset_millisecond_component(async);
-    }
-
-    [ConditionalTheory(Skip = "Bug in .net connector when inserting date time offset")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task Where_datetimeoffset_minute_component(bool async)
-    {
-        await base.Where_datetimeoffset_minute_component(async);
-    }
-
-    [ConditionalTheory(Skip = "BUG IN .net connector when reading non full hour offset")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task Where_datetimeoffset_month_component(bool async)
-    {
-        await base.Where_datetimeoffset_month_component(async);
-    }
-
-    // Not supported by design: we support getting a local DateTime via DateTime.Now (based on PG TimeZone), but there's no way to get a
-    // non-UTC DateTimeOffset.
-    public override Task Where_datetimeoffset_now(bool async)
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Where_datetimeoffset_now(async));
-
-    [ConditionalTheory(Skip = "Bug in .net connector when inserting date time offset")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task Where_datetimeoffset_second_component(bool async)
-    {
-        await base.Where_datetimeoffset_second_component(async);
-    }
-
-    public override Task Where_datetimeoffset_utcnow(bool async)
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Where_datetimeoffset_utcnow(async));
 
     public override async Task Where_subquery_boolean(bool async)
     {
@@ -589,54 +471,8 @@ public class GearsOfWarQuerySnowflakeTest : GearsOfWarQueryRelationalTestBase<Ge
             await base.Where_subquery_with_ElementAtOrDefault_equality_to_null_with_composite_key(async));
     }
 
-    [ConditionalTheory(Skip = "Not Implemented")]
-    [MemberData(nameof(IsAsyncData))]
-    public override Task Where_TimeOnly_Millisecond(bool async) => base.Where_TimeOnly_Millisecond(async);
-
     [ConditionalTheory(Skip = "Bug in .net connector when reading date time offset")]
     [MemberData(nameof(IsAsyncData))]
-    public override Task Order_by_TimeOnly_FromTimeSpan(bool async)
-        => base.Order_by_TimeOnly_FromTimeSpan(async);
-
-    [ConditionalTheory(Skip =
-        "TimeSpan does not implement IConvertible, if it gets implemented then by EFCore or Snowflake new type")]
-    [MemberData(nameof(IsAsyncData))]
-    public override Task Where_TimeOnly_subtract_TimeOnly(bool async) => base.Where_TimeOnly_subtract_TimeOnly(async);
-
-    [ConditionalTheory(Skip = "NOT IMPLEMENTED")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task Where_TimeSpan_Hours(bool async)
-    {
-        // not implemented
-        await Assert.ThrowsAsync<InvalidCastException>(async () =>
-            await base.Where_TimeSpan_Hours(async));
-    }
-
-    [ConditionalTheory(Skip = "NOT IMPLEMENTED")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task Where_TimeSpan_Minutes(bool async)
-    {
-        // not implemented
-        await Assert.ThrowsAsync<InvalidCastException>(async () =>
-            await base.Where_TimeSpan_Minutes(async));
-    }
-
-    [ConditionalTheory(Skip = "NOT IMPLEMENTED")]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task Where_TimeSpan_Seconds(bool async)
-    {
-        // not implemented
-        await Assert.ThrowsAsync<InvalidCastException>(async () =>
-            await base.Where_TimeSpan_Seconds(async));
-    }
-
-
-    public override async Task Where_TimeSpan_Milliseconds(bool async)
-    {
-        // not implemented
-        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await base.Where_TimeSpan_Milliseconds(async));
-    }
 
     public override async Task Nav_expansion_with_member_pushdown_inside_Contains_argument(bool async)
     {
@@ -657,16 +493,4 @@ public class GearsOfWarQuerySnowflakeTest : GearsOfWarQueryRelationalTestBase<Ge
     {
         await base.ToString_boolean_computed_nullable(async);
     }
-
-    [ConditionalTheory(Skip =
-        "Snowflake.net connector does not support TimeOnly, inner partial implementation is only provided")]
-    [MemberData(nameof(IsAsyncData))]
-    public override Task Where_TimeOnly_FromTimeSpan_compared_to_parameter(bool async) =>
-        base.Where_TimeOnly_FromTimeSpan_compared_to_parameter(async);
-
-    [ConditionalTheory(Skip =
-        "Snowflake.net connector does not support TimeOnly, inner partial implementation is only provided")]
-    [MemberData(nameof(IsAsyncData))]
-    public override Task Where_TimeOnly_FromTimeSpan_compared_to_property(bool async) =>
-        base.Where_TimeOnly_FromTimeSpan_compared_to_property(async);
 }
