@@ -74,7 +74,7 @@ public class ComplexNavigationsSharedTypeQuerySnowflakeTest :
 
     public override async Task Nested_SelectMany_correlated_with_join_table_correctly_translated_to_apply(bool async)
     {
-        await Assert.ThrowsAsync<SnowflakeOuterApplyNotSupportedException>(async () =>
+        await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
             await base.Nested_SelectMany_correlated_with_join_table_correctly_translated_to_apply(async));
     }
 

@@ -13,8 +13,8 @@ public class SnowflakeQueryCompilationContext : RelationalQueryCompilationContex
 
     //[Experimental(EFDiagnostics.PrecompiledQueryExperimental)]
     [Experimental("EF9100")]
-    public SnowflakeQueryCompilationContext(QueryCompilationContextDependencies dependencies, RelationalQueryCompilationContextDependencies relationalDependencies, bool async, bool precompiling, IReadOnlySet<string>? nonNullableReferenceTypeParameters)
-        : base(dependencies, relationalDependencies, async, precompiling, nonNullableReferenceTypeParameters)
+    public SnowflakeQueryCompilationContext(QueryCompilationContextDependencies dependencies, RelationalQueryCompilationContextDependencies relationalDependencies, bool async, bool precompiling)
+        : base(dependencies, relationalDependencies, async, precompiling)
     {
     }
 

@@ -6,8 +6,8 @@ namespace EFCore.Snowflake.Storage;
 
 public class SnowflakeRelationalCommand : RelationalCommand
 {
-    public SnowflakeRelationalCommand(RelationalCommandBuilderDependencies dependencies, string commandText, IReadOnlyList<IRelationalParameter> parameters)
-        : base(dependencies, commandText, parameters)
+    public SnowflakeRelationalCommand(RelationalCommandBuilderDependencies dependencies, string commandText, string logCommandText, IReadOnlyList<IRelationalParameter> parameters)
+        : base(dependencies, commandText, logCommandText, parameters)
     {
     }
     

@@ -1,7 +1,7 @@
-using System.Text.Json;
 using EFCore.Snowflake.Storage.Internal.Mapping;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Text.Json;
 
 namespace EFCore.Snowflake.Storage.Internal;
 
@@ -49,7 +49,8 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
             { typeof(TimeOnly), SnowflakeTimeOnlyTypeMapping.Default },
             { typeof(DateTime), SnowflakeDateTimeTypeMapping.Default },
             { typeof(DateTimeOffset), SnowflakeDateTimeOffsetTypeMapping.Default },
-            { typeof(JsonElement), SnowflakeJsonTypeMapping.Default }
+            { typeof(JsonElement), SnowflakeJsonTypeMapping.Default },
+            { typeof(JsonTypePlaceholder), SnowflakeStructuralJsonTypeMapping.Default }
         };
 
         _storeTypeMappings = new Dictionary<string, RelationalTypeMapping[]>(SnowflakeStoreTypeNames.TypeNameComparer)
