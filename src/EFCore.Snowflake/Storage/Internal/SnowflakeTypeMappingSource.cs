@@ -1,4 +1,3 @@
-using Amazon.Runtime.Internal.Transform;
 using EFCore.Snowflake.Storage.Internal.Mapping;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;

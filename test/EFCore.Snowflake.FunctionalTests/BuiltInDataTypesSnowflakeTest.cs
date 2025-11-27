@@ -221,6 +221,30 @@ public class BuiltInDataTypesSnowflakeTest : BuiltInDataTypesTestBase<BuiltInDat
         }
     }
 
+    [Fact(Skip = "Snowflake.Data bug https://github.com/snowflakedb/snowflake-connector-net/issues/1283")]
+    public override Task Can_query_using_any_data_type()
+    {
+        return base.Can_query_using_any_data_type();
+    }
+
+    [Fact(Skip = "Snowflake.Data bug https://github.com/snowflakedb/snowflake-connector-net/issues/1283")]
+    public override Task Can_query_using_any_data_type_nullable_shadow()
+    {
+        return base.Can_query_using_any_data_type_nullable_shadow();
+    }
+
+    [Fact(Skip = "Snowflake.Data bug https://github.com/snowflakedb/snowflake-connector-net/issues/1283")]
+    public override Task Can_query_using_any_data_type_shadow()
+    {
+        return base.Can_query_using_any_data_type_shadow();
+    }
+
+    [Fact(Skip = "Snowflake.Data bug https://github.com/snowflakedb/snowflake-connector-net/issues/1283")]
+    public override Task Can_query_using_any_nullable_data_type()
+    {
+        return base.Can_query_using_any_nullable_data_type();
+    }
+
     public class BuiltInDataTypesSnowflakeFixture : BuiltInDataTypesFixtureBase
     {
         public override bool StrictEquality => false;

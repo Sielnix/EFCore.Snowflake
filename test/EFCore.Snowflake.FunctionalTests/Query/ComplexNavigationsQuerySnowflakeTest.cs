@@ -77,7 +77,7 @@ public class ComplexNavigationsQuerySnowflakeTest : ComplexNavigationsQueryRelat
 
     public override async Task Nested_SelectMany_correlated_with_join_table_correctly_translated_to_apply(bool async)
     {
-        await Assert.ThrowsAsync<SnowflakeOuterApplyNotSupportedException>(async () =>
+        await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
             await base.Nested_SelectMany_correlated_with_join_table_correctly_translated_to_apply(async));
     }
 
@@ -95,8 +95,9 @@ public class ComplexNavigationsQuerySnowflakeTest : ComplexNavigationsQueryRelat
 
     public override async Task Where_navigation_property_to_collection(bool async)
     {
-        await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
-            await base.Where_navigation_property_to_collection(async));
+        await base.Where_navigation_property_to_collection(async);
+        //await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
+        //    await base.Where_navigation_property_to_collection(async));
     }
 
     public override async Task Correlated_projection_with_first(bool async)

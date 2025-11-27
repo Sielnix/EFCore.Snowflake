@@ -367,10 +367,10 @@ public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabase
                 Assert.Single(dbModel.Tables, t => t is { Schema: "db.2", Name: "SimpleTableName" });
                 Assert.Single(dbModel.Tables, t => t is { Schema: "db.2", Name: "JustTableName" });
 
-                Assert.DoesNotContain(dbModel.Tables, t => t is { Schema: "dbo", Name: "QuotedTableName" });
-                Assert.Single(dbModel.Tables, t => t is { Schema: "dbo", Name: "Table.With.Dot" });
-                Assert.Single(dbModel.Tables, t => t is { Schema: "dbo", Name: "SimpleTableName" });
-                Assert.Single(dbModel.Tables, t => t is { Schema: "dbo", Name: "JustTableName" });
+                Assert.DoesNotContain(dbModel.Tables, t => t is { Schema: "PUBLIC", Name: "QuotedTableName" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "PUBLIC", Name: "Table.With.Dot" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "PUBLIC", Name: "SimpleTableName" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "PUBLIC", Name: "JustTableName" });
 
                 Assert.Single(dbModel.Tables, t => t is { Schema: "db2", Name: "QuotedTableName" });
                 Assert.Single(dbModel.Tables, t => t is { Schema: "db2", Name: "Table.With.Dot" });
