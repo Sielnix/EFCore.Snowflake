@@ -1,6 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EFCore.Snowflake.Query.Internal;
 
@@ -10,4 +9,13 @@ public class SnowflakeQueryCompilationContext : RelationalQueryCompilationContex
         : base(dependencies, relationalDependencies, async)
     {
     }
+
+    //[Experimental(EFDiagnostics.PrecompiledQueryExperimental)]
+    [Experimental("EF9100")]
+    public SnowflakeQueryCompilationContext(QueryCompilationContextDependencies dependencies, RelationalQueryCompilationContextDependencies relationalDependencies, bool async, bool precompiling)
+        : base(dependencies, relationalDependencies, async, precompiling)
+    {
+    }
+
+    public override bool SupportsPrecompiledQuery => true;
 }

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace EFCore.Snowflake.FunctionalTests.Query;
 
-public class EntitySplittingQuerySnowflakeTest() : EntitySplittingQueryTestBase(new NonSharedFixture())
+public class EntitySplittingQuerySnowflakeTest(NonSharedFixture fixture) : EntitySplittingQueryTestBase(fixture)
 {
     protected override ITestStoreFactory TestStoreFactory => SnowflakeTestStoreFactory.Instance;
 

@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Development.props.sample" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/EFCore.Snowflake/EFCore.Snowflake.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/EFCore.Snowflake.FunctionalTests/EFCore.Snowflake.FunctionalTests.csproj" />
+    <Project Path="test/EFCore.Snowflake.Tests/EFCore.Snowflake.Tests.csproj" />
+  </Folder>
+</Solution>

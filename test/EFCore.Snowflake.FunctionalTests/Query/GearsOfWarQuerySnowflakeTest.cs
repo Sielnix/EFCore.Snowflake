@@ -118,7 +118,7 @@ public class GearsOfWarQuerySnowflakeTest : GearsOfWarQueryRelationalTestBase<Ge
         //Not implemented
         await base.Checked_context_with_cast_does_not_fail(isAsync);
     }
-    
+
     [ConditionalTheory(Skip = "BUG IN .net connector")]
     [MemberData(nameof(IsAsyncData))]
     public override async Task DateTimeOffset_Contains_Less_than_Greater_than(bool async)
@@ -133,6 +133,12 @@ public class GearsOfWarQuerySnowflakeTest : GearsOfWarQueryRelationalTestBase<Ge
         await base.DateTimeOffset_Date_returns_datetime(async);
     }
 
+    [ConditionalTheory(Skip = "BUG IN .net connector")] //https://github.com/snowflakedb/snowflake-connector-net/issues/1298
+    [MemberData(nameof(IsAsyncData))]
+    public override async Task Where_equals_method_on_nullable_with_object_overload(bool async)
+    {
+        await base.Where_equals_method_on_nullable_with_object_overload(async);
+    }
 
     public override Task DateTimeOffsetNow_minus_timespan(bool async)
         => Assert.ThrowsAsync<InvalidOperationException>(() => base.DateTimeOffsetNow_minus_timespan(async));
@@ -362,7 +368,6 @@ public class GearsOfWarQuerySnowflakeTest : GearsOfWarQueryRelationalTestBase<Ge
             await base.Where_contains_on_navigation_with_composite_keys(async));
     }
 
-
     public override async Task Where_subquery_boolean(bool async)
     {
         await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
@@ -470,9 +475,6 @@ public class GearsOfWarQuerySnowflakeTest : GearsOfWarQueryRelationalTestBase<Ge
         await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
             await base.Where_subquery_with_ElementAtOrDefault_equality_to_null_with_composite_key(async));
     }
-
-    [ConditionalTheory(Skip = "Bug in .net connector when reading date time offset")]
-    [MemberData(nameof(IsAsyncData))]
 
     public override async Task Nav_expansion_with_member_pushdown_inside_Contains_argument(bool async)
     {

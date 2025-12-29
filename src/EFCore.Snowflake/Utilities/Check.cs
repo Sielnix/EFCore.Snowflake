@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace EFCore.Snowflake.Utilities;
 
@@ -27,34 +28,33 @@ internal class Check
         }
     }
 
-    public static string NotEmpty([NotNull] string? value, string parameterName)
+    public static string NotEmpty(
+        [NotNull] string? value,
+        [CallerArgumentExpression(nameof(value))] string parameterName = "")
     {
-        if (value is null)
+        NotNull(value, parameterName);
+
+        if (value.AsSpan().Trim().Length == 0)
         {
-            NotEmpty(parameterName, nameof(parameterName));
-
-            throw new ArgumentNullException(parameterName);
-        }
-
-        if (value.Trim().Length == 0)
-        {
-            NotEmpty(parameterName, nameof(parameterName));
-
-            throw new ArgumentException(AbstractionsStrings.ArgumentIsEmpty);
+            ThrowStringArgumentEmpty(parameterName);
         }
 
         return value;
     }
 
-    public static string? NullButNotEmpty(string? value, string parameterName)
+    public static string? NullButNotEmpty(
+        string? value,
+        [CallerArgumentExpression(nameof(value))] string parameterName = "")
     {
         if (value is not null && value.Length == 0)
         {
-            NotEmpty(parameterName, nameof(parameterName));
-
-            throw new ArgumentException(AbstractionsStrings.ArgumentIsEmpty);
+            ThrowStringArgumentEmpty(parameterName);
         }
 
         return value;
     }
+
+    [DoesNotReturn]
+    private static void ThrowStringArgumentEmpty(string parameterName)
+        => throw new ArgumentException(AbstractionsStrings.ArgumentIsEmpty, parameterName);
 }

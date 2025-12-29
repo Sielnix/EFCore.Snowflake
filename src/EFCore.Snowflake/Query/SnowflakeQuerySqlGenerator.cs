@@ -1,11 +1,9 @@
-using System.Linq.Expressions;
-using System.Reflection;
 using EFCore.Snowflake.Storage.Internal;
 using EFCore.Snowflake.Storage.Internal.Mapping;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
+using System.Linq.Expressions;
 
 namespace EFCore.Snowflake.Query;
 
@@ -18,8 +16,6 @@ public class SnowflakeQuerySqlGenerator : QuerySqlGenerator
     };
 
     private readonly SnowflakeSqlGenerationHelper _sqlGenerationHelper;
-
-    private Dictionary<string, int>? _repeatedParameterCounts;
 
     public SnowflakeQuerySqlGenerator(QuerySqlGeneratorDependencies dependencies)
         : base(dependencies)
@@ -117,76 +113,25 @@ public class SnowflakeQuerySqlGenerator : QuerySqlGenerator
         }
     }
 
+    private readonly HashSet<string> _parameterNames = [];
     protected override Expression VisitSqlParameter(SqlParameterExpression sqlParameterExpression)
     {
-        var invariantName = sqlParameterExpression.Name;
-        var parameterName = sqlParameterExpression.Name;
-        var typeMapping = sqlParameterExpression.TypeMapping!;
+        var name = sqlParameterExpression.Name;
 
-        // rewritten to access internal property
-        var parameter = Sql.Parameters.FirstOrDefault(p => IsSameParameter(p));
-
-        if (parameter is null)
+        // Only add the parameter to the command the first time we see its (non-invariant) name, even though we may need to add its
+        // placeholder multiple times.
+        if (!_parameterNames.Contains(name))
         {
-            parameterName = GetUniqueParameterName(parameterName);
-
             Sql.AddParameter(
-                invariantName,
-                _sqlGenerationHelper.GenerateParameterName(parameterName),
+                sqlParameterExpression.InvariantName,
+                _sqlGenerationHelper.GenerateParameterName(name),
                 sqlParameterExpression.TypeMapping!,
                 sqlParameterExpression.IsNullable);
-        }
-        else
-        {
-            parameterName = ((TypeMappedRelationalParameter)parameter).Name;
+            _parameterNames.Add(name);
         }
 
-        Sql.Append(_sqlGenerationHelper.GenerateParameterNamePlaceholder(parameterName, sqlParameterExpression.TypeMapping));
+        Sql.Append(_sqlGenerationHelper.GenerateParameterNamePlaceholder(name, sqlParameterExpression.TypeMapping));
 
         return sqlParameterExpression;
-
-        string GetUniqueParameterName(string currentName)
-        {
-            _repeatedParameterCounts ??= new Dictionary<string, int>();
-
-            if (!_repeatedParameterCounts.TryGetValue(currentName, out var currentCount))
-            {
-                _repeatedParameterCounts[currentName] = 0;
-
-                return currentName;
-            }
-
-            currentCount++;
-            _repeatedParameterCounts[currentName] = currentCount;
-
-            return currentName + "_" + currentCount;
-        }
-
-        bool IsSameParameter(IRelationalParameter p)
-        {
-            if (p.InvariantName != parameterName)
-            {
-                return false;
-            }
-
-            if (p is not TypeMappedRelationalParameter typeMappedParameter)
-            {
-                return false;
-            }
-
-            MethodInfo getMethod = typeof(TypeMappedRelationalParameter)
-                .GetProperty("RelationalTypeMapping", BindingFlags.Instance | BindingFlags.NonPublic)?
-                .GetMethod ?? throw new InvalidOperationException("Changed underlying contract");
-
-            RelationalTypeMapping? existingTypeMapping = (RelationalTypeMapping?)getMethod.Invoke(typeMappedParameter, Array.Empty<object>());
-            if (existingTypeMapping is null)
-            {
-                return false;
-            }
-
-            return string.Equals(existingTypeMapping.StoreType, typeMapping.StoreType, StringComparison.OrdinalIgnoreCase)
-                   && (existingTypeMapping.Converter is null && typeMapping.Converter is null
-                       || existingTypeMapping.Converter is not null && existingTypeMapping.Converter.Equals(typeMapping.Converter));
-        }
     }
 }
