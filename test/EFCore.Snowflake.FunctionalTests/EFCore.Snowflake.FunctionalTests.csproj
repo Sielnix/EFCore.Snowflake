@@ -10,7 +10,7 @@
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <InvariantGlobalization>true</InvariantGlobalization>
 
-    <NoWarn>$(NoWarn);NU1903;xUnit2031</NoWarn>
+    <NoWarn>$(NoWarn);NU1903</NoWarn>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(LocalEFCoreRepository)' == ''">
@@ -45,7 +45,7 @@
     <Reference Include="Microsoft.EntityFrameworkCore.Design">
       <HintPath>$(LocalEFCoreRepository)\artifacts\bin\EFCore.Design\Debug\net10.0\$(EfCoreTestTargetFramework)\Microsoft.EntityFrameworkCore.Design.dll</HintPath>
     </Reference>
-
+    
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
   </ItemGroup>
 

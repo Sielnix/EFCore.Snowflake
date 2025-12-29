@@ -18,8 +18,6 @@ public class ComplexNavigationsQuerySnowflakeTest : ComplexNavigationsQueryRelat
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    //protected override bool CanExecuteQueryString => true;
-
     public override async Task Collection_FirstOrDefault_property_accesses_in_projection(bool async)
     {
         await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
@@ -77,7 +75,7 @@ public class ComplexNavigationsQuerySnowflakeTest : ComplexNavigationsQueryRelat
 
     public override async Task Nested_SelectMany_correlated_with_join_table_correctly_translated_to_apply(bool async)
     {
-        await Assert.ThrowsAsync<SnowflakeOuterApplyNotSupportedException>(async () =>
+        await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
             await base.Nested_SelectMany_correlated_with_join_table_correctly_translated_to_apply(async));
     }
 
@@ -91,12 +89,6 @@ public class ComplexNavigationsQuerySnowflakeTest : ComplexNavigationsQueryRelat
     {
         await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
             await base.Project_collection_navigation_count(async));
-    }
-
-    public override async Task Where_navigation_property_to_collection(bool async)
-    {
-        await Assert.ThrowsAsync<SnowflakeDbException>(async () =>
-            await base.Where_navigation_property_to_collection(async));
     }
 
     public override async Task Correlated_projection_with_first(bool async)

@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using EFCore.Snowflake.Design.Internal;
 using EFCore.Snowflake.Diagnostics.Internal;
 using EFCore.Snowflake.FunctionalTests.TestUtilities;
 using EFCore.Snowflake.Metadata;
@@ -17,18 +15,18 @@ using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.Logging;
-using Snowflake.Data.Client;
+using System.Diagnostics;
 
 namespace EFCore.Snowflake.FunctionalTests.Scaffolding.Internal;
 
 public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabaseModelFactoryTest.SnowflakeDatabaseModelFixture>
 {
-    private readonly SnowflakeDatabaseModelFixture _fixture;
+    protected SnowflakeDatabaseModelFixture Fixture { get; }
 
     public SnowflakeDatabaseModelFactoryTest(SnowflakeDatabaseModelFixture fixture)
     {
-        _fixture = fixture;
-        _fixture.ListLoggerFactory.Clear();
+        Fixture = fixture;
+        Fixture.ListLoggerFactory.Clear();
     }
 
     #region Sequences
@@ -104,7 +102,7 @@ public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabase
         => Test(
             dbModel =>
             {
-                var defaultSchema = _fixture.TestStore.ExecuteScalar<string>("SELECT CURRENT_SCHEMA()");
+                var defaultSchema = Fixture.TestStore.ExecuteScalar<string>("SELECT CURRENT_SCHEMA()");
                 Assert.Equal(defaultSchema, dbModel.DefaultSchema);
             });
 
@@ -345,29 +343,27 @@ public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabase
                 var sequence = Assert.Single(dbModel.Sequences);
                 Assert.Equal("db2", sequence.Schema);
 
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "QuotedTableName"));
-                Assert.DoesNotContain(dbModel.Tables, t => t.Schema == "db.2" && t.Name == "Table.With.Dot");
-                //Assert.Empty(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "Table.With.Dot"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "SimpleTableName"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "JustTableName"));
+                Assert.Single(dbModel.Tables, t => t is { Schema: "db.2", Name: "QuotedTableName" });
+                Assert.DoesNotContain(dbModel.Tables, t => t is { Schema: "db.2", Name: "Table.With.Dot" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "db.2", Name: "SimpleTableName" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "db.2", Name: "JustTableName" });
 
-                Assert.DoesNotContain(dbModel.Tables, t => t.Schema == "PUBLIC" && t.Name == "QuotedTableName");
-                //Assert.Empty(dbModel.Tables.Where(t => t.Schema == "PUBLIC" && t.Name == "QuotedTableName"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "PUBLIC" && t.Name == "Table.With.Dot"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "PUBLIC" && t.Name == "SimpleTableName"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "PUBLIC" && t.Name == "JustTableName"));
+                Assert.DoesNotContain(dbModel.Tables, t => t is { Schema: "PUBLIC", Name: "QuotedTableName" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "PUBLIC", Name: "Table.With.Dot" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "PUBLIC", Name: "SimpleTableName" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "PUBLIC", Name: "JustTableName" });
 
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "db2" && t.Name == "QuotedTableName"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "db2" && t.Name == "Table.With.Dot"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "db2" && t.Name == "SimpleTableName"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "db2" && t.Name == "JustTableName"));
+                Assert.Single(dbModel.Tables, t => t is { Schema: "db2", Name: "QuotedTableName" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "db2", Name: "Table.With.Dot" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "db2", Name: "SimpleTableName" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "db2", Name: "JustTableName" });
 
-                var principalTable = Assert.Single(dbModel.Tables.Where(t => t.Schema == "db2" && t.Name == "PrincipalTable"));
+                var principalTable = Assert.Single(dbModel.Tables, t => t is { Schema: "db2", Name: "PrincipalTable" });
                 Assert.NotNull(principalTable.PrimaryKey);
                 Assert.Single(principalTable.UniqueConstraints);
                 Assert.Empty(principalTable.Indexes);
 
-                var dependentTable = Assert.Single(dbModel.Tables.Where(t => t.Schema == "db2" && t.Name == "DependentTable"));
+                var dependentTable = Assert.Single(dbModel.Tables, t => t is { Schema: "db2", Name: "DependentTable" });
                 Assert.Single(dependentTable.ForeignKeys);
             },
             [
@@ -420,8 +416,8 @@ public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabase
                         Assert.Equal("Blogs", c.Table.Name);
                     });
 
-                Assert.Single(table.Columns.Where(c => c.Name == "Id"));
-                Assert.Single(table.Columns.Where(c => c.Name == "Name"));
+                Assert.Single(table.Columns, c => c.Name == "Id");
+                Assert.Single(table.Columns, c => c.Name == "Name");
             },
             @"DROP TABLE ""Blogs""");
 
@@ -447,8 +443,8 @@ public class SnowflakeDatabaseModelFactoryTest : IClassFixture<SnowflakeDatabase
                         Assert.Equal("BlogsView", c.Table.Name);
                     });
 
-                Assert.Single(table.Columns.Where(c => c.Name == "Id"));
-                Assert.Single(table.Columns.Where(c => c.Name == "Name"));
+                Assert.Single(table.Columns, c => c.Name == "Id");
+                Assert.Single(table.Columns, c => c.Name == "Name");
             },
             @"DROP VIEW ""BlogsView"";");
 
@@ -1034,7 +1030,7 @@ CREATE TABLE "ColumnsWithCollation" (
 
                 Assert.Equal(2, foreignKeys.Count);
 
-                var principalFk = Assert.Single(foreignKeys.Where(f => f.PrincipalTable.Name == "PrincipalTable"));
+                var principalFk = Assert.Single(foreignKeys, f => f.PrincipalTable.Name == "PrincipalTable");
 
                 Assert.Equal("PUBLIC", principalFk.Table.Schema);
                 Assert.Equal("DependentTable", principalFk.Table.Name);
@@ -1044,7 +1040,7 @@ CREATE TABLE "ColumnsWithCollation" (
                 Assert.Equal(new List<string> { "Id" }, principalFk.PrincipalColumns.Select(ic => ic.Name).ToList());
                 Assert.Equal(ReferentialAction.NoAction, principalFk.OnDelete);
 
-                var anotherPrincipalFk = Assert.Single(foreignKeys.Where(f => f.PrincipalTable.Name == "AnotherPrincipalTable"));
+                var anotherPrincipalFk = Assert.Single(foreignKeys, f => f.PrincipalTable.Name == "AnotherPrincipalTable");
 
                 Assert.Equal("PUBLIC", anotherPrincipalFk.Table.Schema);
                 Assert.Equal("DependentTable", anotherPrincipalFk.Table.Name);
@@ -1152,7 +1148,7 @@ CREATE TABLE "ColumnsWithCollation" (
             {
                 Assert.Empty(dbModel.Tables);
 
-                var (_, id, message, _, _) = Assert.Single(_fixture.ListLoggerFactory.Log.Where(t => t.Level == LogLevel.Warning));
+                var (_, id, message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log, t => t.Level == LogLevel.Warning);
 
                 Assert.Equal(SnowflakeResources.LogMissingSchema(new TestLogger<SnowflakeLoggingDefinitions>()).EventId, id);
                 Assert.Equal(
@@ -1172,7 +1168,7 @@ CREATE TABLE "ColumnsWithCollation" (
             {
                 Assert.Empty(dbModel.Tables);
 
-                var (_, id, message, _, _) = Assert.Single(_fixture.ListLoggerFactory.Log.Where(t => t.Level == LogLevel.Warning));
+                var (_, id, message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log, t => t.Level == LogLevel.Warning);
 
                 Assert.Equal(SnowflakeResources.LogMissingTable(new TestLogger<SnowflakeLoggingDefinitions>()).EventId, id);
                 Assert.Equal(
@@ -1198,7 +1194,7 @@ CREATE TABLE "ColumnsWithCollation" (
             Enumerable.Empty<string>(),
             _ =>
             {
-                var (_, id, message, _, _) = Assert.Single(_fixture.ListLoggerFactory.Log.Where(t => t.Level == LogLevel.Warning));
+                var (_, id, message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log, t => t.Level == LogLevel.Warning);
 
                 Assert.Equal(SnowflakeResources.LogPrincipalTableNotInSelectionSet(new TestLogger<SnowflakeLoggingDefinitions>()).EventId, id);
                 Assert.Equal(
@@ -1244,7 +1240,7 @@ CREATE TABLE "ColumnsWithCollation" (
     {
         foreach (var createSql in createSqls)
         {
-            _fixture.TestStore.ExecuteNonQuery(createSql);
+            Fixture.TestStore.ExecuteNonQuery(createSql);
         }
 
         try
@@ -1253,7 +1249,7 @@ CREATE TABLE "ColumnsWithCollation" (
             var databaseModelFactory = new SnowflakeDatabaseModelFactory(
                 new SnowflakeSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                 new DiagnosticsLogger<DbLoggerCategory.Scaffolding>(
-                    _fixture.ListLoggerFactory,
+                    Fixture.ListLoggerFactory,
                     new LoggingOptions(),
                     new DiagnosticListener("Fake"),
                     new SnowflakeLoggingDefinitions(),
@@ -1261,7 +1257,7 @@ CREATE TABLE "ColumnsWithCollation" (
 #pragma warning restore EF1001
 
             DatabaseModel databaseModel = databaseModelFactory.Create(
-                _fixture.TestStore.ConnectionString,
+                Fixture.TestStore.ConnectionString,
                 new DatabaseModelFactoryOptions(tables, schemas));
             Assert.NotNull(databaseModel);
             asserter(databaseModel);
@@ -1272,7 +1268,7 @@ CREATE TABLE "ColumnsWithCollation" (
             {
                 foreach (var queryString in cleanupSql)
                 {
-                    _fixture.TestStore.ExecuteNonQuery(queryString);
+                    Fixture.TestStore.ExecuteNonQuery(queryString);
                 }
             }
         }
