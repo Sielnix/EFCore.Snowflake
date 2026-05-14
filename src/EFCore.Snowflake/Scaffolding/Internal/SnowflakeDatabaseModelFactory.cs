@@ -258,14 +258,18 @@ WHERE {schemaFilter("SEQUENCE_SCHEMA")}
             ? string.Empty
             : $"AND {tableFilter("TABLE_SCHEMA", "TABLE_NAME")}";
 
+        // Hybrid tables also appear in INFORMATION_SCHEMA.TABLES with TABLE_TYPE = 'BASE TABLE'.
+        // Exclude them here; they are returned with their richer metadata by GetHybridTables.
+        // Without this filter a hybrid table appears twice in the merged list and ToDictionary
+        // throws "An item with the same key has already been added".
         string query = @$"
-SELECT 
+SELECT
     TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE, IS_TRANSIENT, COMMENT
 FROM
     INFORMATION_SCHEMA.TABLES
 WHERE
     TABLE_TYPE {tableTypeFilter}
-    
+    AND IS_HYBRID = 'NO'
         {fullTableFilter}
 
         ";
