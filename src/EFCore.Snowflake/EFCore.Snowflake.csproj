@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
-    <NoWarn>$(NoWarn);NU1903</NoWarn>
+    <NoWarn>$(NoWarn);NU1903;NU1901</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
