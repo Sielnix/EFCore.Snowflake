@@ -1,5 +1,8 @@
 using EFCore.Snowflake.FunctionalTests.TestUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.TestModels.StoreValueGenerationModel;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Update;
 using Xunit.Abstractions;
@@ -65,5 +68,25 @@ public class StoreValueGenerationIdentitySnowflakeTest
 
         protected override ITestStoreFactory TestStoreFactory
             => SnowflakeTestStoreFactory.Instance;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
+        {
+            base.OnModelCreating(modelBuilder, context);
+
+            ISqlGenerationHelper sqlGenerationHelper = context.GetService<ISqlGenerationHelper>();
+
+            foreach (var name in new[]
+                     {
+                         nameof(StoreValueGenerationContext.WithSomeDatabaseGenerated),
+                         nameof(StoreValueGenerationContext.WithSomeDatabaseGenerated2)
+                     })
+            {
+                modelBuilder
+                    .SharedTypeEntity<StoreValueGenerationData>(name)
+                    .Property(w => w.Data1)
+                    .HasColumnType("NUMBER(11,0)") // CHANGE - Snowflake increases computed columns precision by 1, so we need to increase it here as well to pass the test
+                    .HasComputedColumnSql(sqlGenerationHelper.DelimitIdentifier(nameof(StoreValueGenerationData.Id)) + " + 1");
+            }
+        }
     }
 }

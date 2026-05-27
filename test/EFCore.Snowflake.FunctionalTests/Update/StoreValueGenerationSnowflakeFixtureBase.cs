@@ -33,6 +33,7 @@ public abstract class StoreValueGenerationSnowflakeFixtureBase : StoreValueGener
             modelBuilder
                 .SharedTypeEntity<StoreValueGenerationData>(name)
                 .Property(w => w.Data1)
+                .HasColumnType("NUMBER(11,0)")
                 .HasComputedColumnSql(sqlGenerationHelper.DelimitIdentifier(nameof(StoreValueGenerationData.Id)) + " + 1");
         }
     }

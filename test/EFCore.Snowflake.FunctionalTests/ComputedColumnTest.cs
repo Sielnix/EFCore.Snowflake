@@ -87,8 +87,8 @@ public class ComputedColumnTest : IAsyncLifetime
         public int P1 { get; set; }
         public int P2 { get; set; }
         public int? P3 { get; set; }
-        public int P4 { get; set; }
-        public int? P5 { get; set; }
+        public long P4 { get; set; }
+        public long? P5 { get; set; }
     }
     
     public async Task InitializeAsync()
