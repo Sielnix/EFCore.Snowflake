@@ -158,8 +158,8 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
                     e.Property<int>("Y");
                 }),
             builder => { },
-            // ONLY CHANGE: property type to int, since otherwise snowflake requires manual cast from int to varchar in computed sql
-            builder => builder.Entity("People").Property<int>("Sum")
+            // ONLY CHANGE: property type to long, since otherwise snowflake requires manual cast from int to varchar in computed sql
+            builder => builder.Entity("People").Property<long>("Sum")
                 .HasComputedColumnSql($"{DelimitIdentifier("X")} + {DelimitIdentifier("Y")}", stored),
             model =>
             {
@@ -240,15 +240,16 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
             builder => builder.Entity(
                 "People", e =>
                 {
-                    // ONLY CHANGE - Added column ordering
+                    // CHANGE - Added column ordering
                     e.Property<int>("Id").HasColumnOrder(0);
                     e.Property<int>("X").HasColumnOrder(1);
                     e.Property<int>("Y").HasColumnOrder(2);
                     e.Property<int>("Sum").HasColumnOrder(3);
                 }),
-            builder => builder.Entity("People").Property<int>("Sum")
+            // CHANGE - changed column type to long
+            builder => builder.Entity("People").Property<long>("Sum")
                 .HasComputedColumnSql($"{DelimitIdentifier("X")} + {DelimitIdentifier("Y")}"),
-            builder => builder.Entity("People").Property<int>("Sum")
+            builder => builder.Entity("People").Property<long>("Sum")
                 .HasComputedColumnSql($"{DelimitIdentifier("X")} - {DelimitIdentifier("Y")}"),
             model =>
             {
@@ -274,15 +275,16 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
             builder => builder.Entity(
                 "People", e =>
                 {
-                    // ONLY CHANGE - added column orders
+                    // CHANGE - added column orders
                     e.Property<int>("Id").HasColumnOrder(0);
                     e.Property<int>("X").HasColumnOrder(1);
                     e.Property<int>("Y").HasColumnOrder(2);
                     e.Property<int>("Sum").HasColumnOrder(3);
                 }),
-            builder => builder.Entity("People").Property<int>("Sum")
+            // CHANGE - changed column type to long
+            builder => builder.Entity("People").Property<long>("Sum")
                 .HasComputedColumnSql($"{DelimitIdentifier("X")} + {DelimitIdentifier("Y")}", stored: false),
-            builder => builder.Entity("People").Property<int>("Sum")
+            builder => builder.Entity("People").Property<long>("Sum")
                 .HasComputedColumnSql($"{DelimitIdentifier("X")} + {DelimitIdentifier("Y")}", stored: true),
             model =>
             {
@@ -305,7 +307,36 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
             return;
         }
 
-        await base.Alter_column_make_computed(stored);
+        Task MethodImpl()
+            => Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<int>("X");
+                        e.Property<int>("Y");
+                    }),
+                // ONLY CHANGE - changed type to long
+                builder => builder.Entity("People").Property<long>("Sum"),
+                builder => builder.Entity("People").Property<long>("Sum")
+                    .HasComputedColumnSql($"{DelimitIdentifier("X")} + {DelimitIdentifier("Y")}", stored),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var sumColumn = Assert.Single(table.Columns, c => c.Name == "Sum");
+                    if (AssertComputedColumns)
+                    {
+                        Assert.Contains("X", sumColumn.ComputedColumnSql);
+                        Assert.Contains("Y", sumColumn.ComputedColumnSql);
+                        Assert.Contains("+", sumColumn.ComputedColumnSql);
+                        if (stored != null)
+                        {
+                            Assert.Equal(stored, sumColumn.IsStored);
+                        }
+                    }
+                });
+
+        await MethodImpl();
     }
 
     public override Task Alter_column_make_non_computed()
@@ -313,12 +344,13 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
             builder => builder.Entity(
                 "People", e =>
                 {
-                    // ONLY CHANGE - added column orders
+                    // CHANGE - added column orders
                     e.Property<int>("Id").HasColumnOrder(0);
                     e.Property<int>("X").HasColumnOrder(1);
                     e.Property<int>("Y").HasColumnOrder(2);
                 }),
-            builder => builder.Entity("People").Property<int>("Sum")
+            // CHANGE - changed column type to long
+            builder => builder.Entity("People").Property<long>("Sum")
                 .HasComputedColumnSql($"{DelimitIdentifier("X")} + {DelimitIdentifier("Y")}")
                 .HasColumnOrder(3),
             builder => builder.Entity("People").Property<int>("Sum"),
@@ -328,6 +360,23 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
                 var sumColumn = Assert.Single(table.Columns, c => c.Name == "Sum");
                 Assert.Null(sumColumn.ComputedColumnSql);
                 Assert.NotEqual(true, sumColumn.IsStored);
+            });
+
+    public override Task Drop_column_computed_and_non_computed_with_dependency()
+        => Test(
+            builder => builder.Entity("People").Property<int>("Id"),
+            builder => builder.Entity(
+                "People", e =>
+                {
+                    e.Property<int>("X");
+                    // CHANGE - changed column type to long
+                    e.Property<long>("Y").HasComputedColumnSql($"{DelimitIdentifier("X")} + 1");
+                }),
+            builder => { },
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                Assert.Equal("Id", Assert.Single(table.Columns).Name);
             });
 
     public override async Task Alter_column_make_required_with_composite_index()
@@ -606,6 +655,7 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
 
     public override async Task Create_table_with_computed_column(bool? stored)
     {
+        var ctx = CreateContext();
         Task TestImpl()
             => Test(
                 builder => { },
@@ -616,8 +666,8 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
                         e.Property<int>("Id").HasColumnOrder(0);
                         e.Property<int>("X").HasColumnOrder(1);
                         e.Property<int>("Y").HasColumnOrder(2);
-                        // LAST CHANGE - added column order and changed type to int
-                        e.Property<int>("Sum").HasComputedColumnSql(
+                        // CHANGE - added column order and changed type to long
+                        e.Property<long>("Sum").HasComputedColumnSql(
                             $"{DelimitIdentifier("X")} + {DelimitIdentifier("Y")}",
                             stored).HasColumnOrder(3);
                     }),
