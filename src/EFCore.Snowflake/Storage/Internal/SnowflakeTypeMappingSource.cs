@@ -60,7 +60,7 @@ public class SnowflakeTypeMappingSource : RelationalTypeMappingSource
             { SnowflakeStoreTypeNames.SingleChar, [ _charTypeMapping, new SnowflakeStringTypeMapping(1) ]},
             { SnowflakeStoreTypeNames.SingleByte, [ SnowflakeByteAsBinaryTypeMapping.Default, SnowflakeByteAsIntTypeMapping.Default ]},
             { SnowflakeStoreTypeNames.Float, [ _doubleTypeMapping, _floatTypeMapping ]},
-            { SnowflakeStoreTypeNames.Variant, [ SnowflakeVariantTypeMapping.Default ] },
+            { SnowflakeStoreTypeNames.Variant, [ SnowflakeVariantTypeMapping.Default, SnowflakeStructuralJsonTypeMapping.Default] },
             { SnowflakeStoreTypeNames.Array, [ SnowflakeArrayTypeMapping.Default ] },
             { SnowflakeStoreTypeNames.Object, [ SnowflakeObjectTypeMapping.Default ] }
         };
