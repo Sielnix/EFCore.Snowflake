@@ -52,12 +52,211 @@ public class ArrayQueryTest : IClassFixture<ArrayQueryTest.ArrayQueryFixture>
         Assert.False(item.BoolArray[2]!.Value);
     }
 
+    [ConditionalFact]
+    public virtual void Where_Array_Contains_Constant()
+    {
+        using ArrayQueryContext context = CreateContext();
+        TableItem item = context.TableItems.Single(i => i.StringArray.Contains("CCCC"));
+        Assert.Equal(1000, item.Id);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_Contains_Parameter()
+    {
+        using ArrayQueryContext context = CreateContext();
+        string value = "B";
+        TableItem item = context.TableItems.Single(i => i.StringArray.Contains(value));
+        Assert.Equal(1000, item.Id);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_Contains_Missing_Value_Returns_No_Results()
+    {
+        using ArrayQueryContext context = CreateContext();
+        bool any = context.TableItems.Any(i => i.StringArray.Contains("does-not-exist"));
+        Assert.False(any);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Int_Array_Contains_Constant()
+    {
+        using ArrayQueryContext context = CreateContext();
+        TableItem item = context.TableItems.Single(i => i.IntArray.Contains(4));
+        Assert.Equal(1000, item.Id);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_List_Contains_Constant()
+    {
+        using ArrayQueryContext context = CreateContext();
+        TableItem item = context.TableItems.Single(i => i.StringList.Contains("CCCC"));
+        Assert.Equal(1000, item.Id);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Nullable_Element_Array_Contains_Constant()
+    {
+        using ArrayQueryContext context = CreateContext();
+        TableItemNullable item = context.TableItemNullables.Single(i => i.IntArray.Contains(4));
+        Assert.Equal(1, item.Id);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_Contains_On_Nullable_Column()
+    {
+        using ArrayQueryContext context = CreateContext();
+        TableColumnNullable item = context.TableColumnNullables.Single(i => i.StringArray!.Contains("a"));
+        Assert.Equal(1, item.Id);
+
+        bool anyMatchOnNullColumn = context.TableColumnNullables
+            .Where(i => i.Id == 2)
+            .Any(i => i.StringArray!.Contains("a"));
+        Assert.False(anyMatchOnNullColumn);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_Any_Contains_Constant()
+    {
+        using ArrayQueryContext context = CreateContext();
+        TableItem item = context.TableItems.Single(i => i.StringArray.Any(a => a.Contains("CC")));
+        Assert.Equal(1000, item.Id);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_Any_Contains_Parameter()
+    {
+        using ArrayQueryContext context = CreateContext();
+        string pattern = "CC";
+        TableItem item = context.TableItems.Single(i => i.StringArray.Any(a => a.Contains(pattern)));
+        Assert.Equal(1000, item.Id);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_Any_StartsWith_Missing_Returns_No_Results()
+    {
+        using ArrayQueryContext context = CreateContext();
+        bool any = context.TableItems.Any(i => i.StringArray.Any(a => a.StartsWith("zzz")));
+        Assert.False(any);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_Any_Contains_Escapes_Special_Characters()
+    {
+        using ArrayQueryContext context = CreateContext();
+        bool any = context.TableItems.Any(i => i.StringArray.Any(a => a.Contains("5_")));
+        Assert.False(any);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_All_Contains_Empty_Pattern_Matches_All_Elements()
+    {
+        using ArrayQueryContext context = CreateContext();
+        TableItem item = context.TableItems.Single(i => i.StringArray.All(a => a.Contains("")));
+        Assert.Equal(1000, item.Id);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_All_StartsWith_Not_All_Match_Returns_No_Results()
+    {
+        using ArrayQueryContext context = CreateContext();
+        bool any = context.TableItems.Any(i => i.StringArray.All(a => a.StartsWith("a")));
+        Assert.False(any);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_All_On_Empty_Array_Is_Vacuously_True()
+    {
+        using ArrayQueryContext context = CreateContext();
+        bool clientSideAll = Array.Empty<string>().All(a => a.StartsWith("a"));
+        Assert.True(clientSideAll);
+
+        TableColumnNullable item = context.TableColumnNullables.Single(i => i.Id == 3);
+        Assert.NotNull(item.StringArray);
+        Assert.Empty(item.StringArray);
+
+        bool dbSideAll = context.TableColumnNullables
+            .Any(i => i.Id == 3 && i.StringArray!.All(a => a.StartsWith("a")));
+
+        Assert.Equal(clientSideAll, dbSideAll);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_All_On_Null_Array_Is_Vacuously_True()
+    {
+        using ArrayQueryContext context = CreateContext();
+
+        TableColumnNullable item = context.TableColumnNullables.Single(i => i.Id == 2);
+        Assert.Null(item.StringArray);
+
+        bool dbSideAll = context.TableColumnNullables
+            .Any(i => i.Id == 2 && i.StringArray!.All(a => a.StartsWith("a")));
+
+        Assert.True(dbSideAll);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_Any_Parameterless_On_NonEmpty_Array_Is_True()
+    {
+        using ArrayQueryContext context = CreateContext();
+        bool any = context.TableItems.Any(i => i.StringArray.Any());
+        Assert.True(any);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_Any_Parameterless_On_Empty_Array_Is_False()
+    {
+        using ArrayQueryContext context = CreateContext();
+        bool any = context.TableColumnNullables.Any(i => i.Id == 3 && i.StringArray!.Any());
+        Assert.False(any);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_Any_Parameterless_On_Null_Array_Is_False()
+    {
+        using ArrayQueryContext context = CreateContext();
+        bool any = context.TableColumnNullables.Any(i => i.Id == 2 && i.StringArray!.Any());
+        Assert.False(any);
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_Any_Compound_Predicate_Is_Not_Supported()
+    {
+        using ArrayQueryContext context = CreateContext();
+        Assert.Throws<InvalidOperationException>(
+            () => context.TableItems.Any(i => i.StringArray.Any(a => a.StartsWith("a") && a.EndsWith("b"))));
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_Any_Non_String_Method_Predicate_Is_Not_Supported()
+    {
+        using ArrayQueryContext context = CreateContext();
+        Assert.Throws<InvalidOperationException>(
+            () => context.TableItems.Any(i => i.StringArray.Any(a => a.Length > 2)));
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_Any_Nested_Member_Chain_Predicate_Is_Not_Supported()
+    {
+        using ArrayQueryContext context = CreateContext();
+        Assert.Throws<InvalidOperationException>(
+            () => context.TableItems.Any(i => i.StringArray.Any(a => a.ToUpper().Contains("A"))));
+    }
+
+    [ConditionalFact]
+    public virtual void Where_Array_Any_Chained_Before_Predicate_Is_Not_Supported()
+    {
+        using ArrayQueryContext context = CreateContext();
+        Assert.Throws<InvalidOperationException>(
+            () => context.TableItems.Any(i => i.StringArray.Where(a => a.Length > 1).Any()));
+    }
+
     protected ArrayQueryContext CreateContext() => Fixture.CreateContext();
 
     public class TableItem
     {
         public long Id { get; set; }
         public string[] StringArray { get; set; } = null!;
+        public List<string> StringList { get; set; } = null!;
         public bool[] BoolArray { get; set; } = null!;
         public char[] CharArray { get; set; } = null!;
         public byte[][] ByteArrayArray { get; set; } = null!;
@@ -150,7 +349,8 @@ public class ArrayQueryTest : IClassFixture<ArrayQueryTest.ArrayQueryFixture>
             context.AddRange(new TableItem()
             {
                 Id = 1000,
-                StringArray = ["a", "B", "CCCC"],
+                StringArray = ["a", "B", "CCCC", "5\\X"],
+                StringList = ["a", "B", "CCCC"],
                 BoolArray = [true, false],
                 ByteArrayArray = [ [0,1], [2, 255] ],
                 CharArray = ['a', 'B', '\\'],
@@ -196,6 +396,11 @@ public class ArrayQueryTest : IClassFixture<ArrayQueryTest.ArrayQueryFixture>
             new TableColumnNullable()
             {
                 Id = 2
+            },
+            new TableColumnNullable()
+            {
+                Id = 3,
+                StringArray = []
             },
             new TableItemNullable()
             {
