@@ -44,10 +44,11 @@ public class SemiStructuredTypesTest : QueryTestBase<SemiStructuredTypesTest.Sem
         );
     }
 
-    public class SemiStructuredTypesFixture : SharedStoreFixtureBase<SemiStructuredTypesDbContext>, IQueryFixtureBase
+    public class SemiStructuredTypesFixture : SharedStoreFixtureBase<SemiStructuredTypesDbContext>, IQueryFixtureBase, ITestSqlLoggerFactory
     {
         protected override string StoreName => "SemiStructuredTypesTest";
         protected override ITestStoreFactory TestStoreFactory => SnowflakeTestStoreFactory.Instance;
+        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
 
         protected override Task SeedAsync(SemiStructuredTypesDbContext context)
         {

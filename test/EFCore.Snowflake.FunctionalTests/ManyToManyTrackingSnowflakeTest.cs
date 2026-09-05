@@ -81,7 +81,7 @@ public class ManyToManyTrackingSnowflakeTest(ManyToManyTrackingSnowflakeTest.Man
         await base.Can_replace_dependent_with_many_to_many(createNewCollection, async);
     }
 
-    public class ManyToManyTrackingSnowflakeFixture : ManyToManyTrackingRelationalFixture//, ITestSqlLoggerFactory
+    public class ManyToManyTrackingSnowflakeFixture : ManyToManyTrackingRelationalFixture, ITestSqlLoggerFactory
     {
         protected override ITestStoreFactory TestStoreFactory
             => SnowflakeTestStoreFactory.Instance;

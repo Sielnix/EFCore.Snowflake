@@ -23,7 +23,7 @@ public class FunkyDataQuerySnowflakeTest : FunkyDataQueryTestBase<FunkyDataQuery
             await base.String_FirstOrDefault_and_LastOrDefault(async));
     }
 
-    public class FunkyDataQuerySnowflakeFixture : FunkyDataQueryFixtureBase
+    public class FunkyDataQuerySnowflakeFixture : FunkyDataQueryFixtureBase, ITestSqlLoggerFactory
     {
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;

@@ -41,7 +41,7 @@ public class Ef6GroupBySnowflakeTest : Ef6GroupByTestBase<Ef6GroupBySnowflakeTes
         Fixture.TestSqlLoggerFactory.AssertSql(expected);
     }
 
-    public class Ef6GroupBySnowflakeFixture : Ef6GroupByFixtureBase
+    public class Ef6GroupBySnowflakeFixture : Ef6GroupByFixtureBase, ITestSqlLoggerFactory
     {
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;

@@ -138,7 +138,7 @@ public class ManyToManyLoadSnowflakeTest : ManyToManyLoadTestBase<ManyToManyLoad
         await base.Load_collection_using_Query_already_loaded_untyped_unidirectional(state, async, deleteOrphansTiming);
     }
 
-    public class ManyToManyLoadSnowflakeFixture : ManyToManyLoadFixtureBase
+    public class ManyToManyLoadSnowflakeFixture : ManyToManyLoadFixtureBase, ITestSqlLoggerFactory
     {
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
