@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Globalization;
-using System.Text;
 
 namespace EFCore.Snowflake.Migrations;
 
@@ -84,6 +83,7 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
         builder
             .Append("DROP VIEW ")
             .Append(DelimitIdentifier(operation.Name, operation.Schema))
+            .AppendLine(StatementTerminator)
             .EndCommand(suppressTransaction: true);
     }
 
@@ -96,7 +96,7 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
         builder
             .Append("CREATE SCHEMA IF NOT EXISTS ")
             .Append(DelimitIdentifier(operation.Name))
-            .Append(StatementTerminator)
+            .AppendLine(StatementTerminator)
             .EndCommand();
     }
 
@@ -130,42 +130,54 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
                 .Append(DelimitIdentifier(operation.Table, operation.Schema))
                 .Append(" ALTER COLUMN ")
                 .Append(DelimitIdentifier(operation.Name))
-                .Append("DROP DEFAULT")
-                .Append(StatementTerminator)
+                .Append(" DROP DEFAULT")
+                .AppendLine(StatementTerminator)
                 .EndCommand();
         }
 
         if (operation.ComputedColumnSql != operation.OldColumn.ComputedColumnSql)
         {
             // drop and recreate column if it is computed
-            builder
-                .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Table, operation.Schema))
-                .Append(" DROP COLUMN ")
-                .Append(DelimitIdentifier(operation.Name))
-                .Append(StatementTerminator)
-                .EndCommand();
-
-            builder
-                .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Table, operation.Schema))
-                .Append(" ADD ");
-
-            ColumnDefinition(
-                operation.Schema,
-                operation.Table,
-                operation.Name,
-                operation,
+            Generate(
+                new DropColumnOperation
+                {
+                    Schema = operation.Schema,
+                    Table = operation.Table,
+                    Name = operation.Name
+                },
                 model,
                 builder);
 
-            builder
-                .Append(StatementTerminator)
-                .EndCommand();
+            var addColumnOperation = new AddColumnOperation
+            {
+                Schema = operation.Schema,
+                Table = operation.Table,
+                Name = operation.Name,
+                ClrType = operation.ClrType,
+                ColumnType = operation.ColumnType,
+                IsUnicode = operation.IsUnicode,
+                IsFixedLength = operation.IsFixedLength,
+                MaxLength = operation.MaxLength,
+                Precision = operation.Precision,
+                Scale = operation.Scale,
+                IsRowVersion = operation.IsRowVersion,
+                IsNullable = operation.IsNullable,
+                DefaultValue = operation.DefaultValue,
+                DefaultValueSql = operation.DefaultValueSql,
+                ComputedColumnSql = operation.ComputedColumnSql,
+                IsStored = operation.IsStored,
+                Comment = operation.Comment,
+                Collation = operation.Collation
+            };
+            addColumnOperation.AddAnnotations(operation.GetAnnotations());
+
+            Generate(addColumnOperation, model, builder);
 
             return;
         }
-        
+
+        string? type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation, model);
+
         if (operation.IsNullable != operation.OldColumn.IsNullable)
         {
             if (!operation.IsNullable && (operation.DefaultValueSql is not null || operation.DefaultValue is not null))
@@ -178,8 +190,6 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
                 else
                 {
                     Check.DebugAssert(operation.DefaultValue is not null, "operation.DefaultValue is not null");
-
-                    string? type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation, model);
 
                     RelationalTypeMapping? typeMapping = null;
                     if (type != null)
@@ -212,13 +222,13 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
                 .Append(" ALTER COLUMN ")
                 .Append(DelimitIdentifier(operation.Name))
                 .Append(operation.IsNullable ? " DROP NOT NULL" : " SET NOT NULL")
-                .Append(StatementTerminator)
+                .AppendLine(StatementTerminator)
                 .EndCommand();
         }
 
-        if (operation.ColumnType != operation.OldColumn.ColumnType)
+        if (type != operation.OldColumn.ColumnType)
         {
-            if (operation.ColumnType == null)
+            if (type == null)
             {
                 throw new NotSupportedException(
                     "Column type is required if it's not calculated (Virtual) column");
@@ -230,8 +240,8 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
                 .Append(" ALTER COLUMN ")
                 .Append(DelimitIdentifier(operation.Name))
                 .Append(" SET DATA TYPE ")
-                .Append(operation.ColumnType)
-                .Append(StatementTerminator)
+                .Append(type)
+                .AppendLine(StatementTerminator)
                 .EndCommand();
         }
 
@@ -255,7 +265,7 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
             }
 
             builder
-                .Append(StatementTerminator)
+                .AppendLine(StatementTerminator)
                 .EndCommand();
         }
     }
@@ -302,7 +312,7 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
         if (terminate)
         {
             builder
-                .Append(StatementTerminator)
+                .AppendLine(StatementTerminator)
                 .EndCommand();
         }
     }
@@ -320,16 +330,24 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
 
     protected override void Generate(CreateSequenceOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
+        // Snowflake sequences don't have a type; specifying long to avoid AS clause
+        operation.ClrType = typeof(long);
+        base.Generate(operation, model, builder);
+    }
+
+    protected override void SequenceOptions(
+        string? schema,
+        string name,
+        SequenceOperation operation,
+        IModel? model,
+        MigrationCommandListBuilder builder,
+        bool forAlter)
+    {
         bool isOrdered = (bool)operation.GetAnnotation(SnowflakeAnnotationNames.SequenceIsOrdered).Value!;
 
         builder
-            .Append("CREATE SEQUENCE ")
-            .Append(DelimitIdentifier(operation.Name, operation.Schema)).AppendLine()
-            .Append("START WITH ").Append(operation.StartValue.ToString(CultureInfo.InvariantCulture))
             .Append(" INCREMENT BY ").Append(operation.IncrementBy.ToString(CultureInfo.InvariantCulture))
-            .Append(" ").Append(isOrdered ? "ORDER" : "NOORDER")
-            .AppendLine(StatementTerminator)
-            .EndCommand();
+            .Append(" ").Append(isOrdered ? "ORDER" : "NOORDER");
     }
 
     protected override void Generate(RenameSequenceOperation operation, IModel? model, MigrationCommandListBuilder builder)
@@ -380,7 +398,7 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
         if (GetTableType(operation) != GetTableType(operation.OldTable))
         {
             throw new InvalidOperationException(
-                "To change the table table, the table needs to be dropped and recreated.");
+                "To change the table type, the table needs to be dropped and recreated.");
         }
 
         if (operation.Comment != operation.OldTable.Comment)
@@ -461,7 +479,7 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
         CheckIndexHandling(model);
     }
 
-    protected override void ColumnDefinition(
+    protected override void ComputedColumnDefinition(
         string? schema,
         string table,
         string name,
@@ -482,56 +500,82 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
                 .Append(GenerateSqlLiteral(operation.Collation));
         }
 
-        if (operation.ComputedColumnSql != null)
+        if (operation.IsStored.HasValue && operation.IsStored.Value)
         {
-            if (operation.IsStored.HasValue && operation.IsStored.Value)
-            {
-                ThrowNoStoredCalculatedColumns();
-            }
-
-            builder.Append(" AS ");
-            if (operation.Collation == null)
-            {
-                builder
-                    .Append("(")
-                    .Append(operation.ComputedColumnSql)
-                    .Append(")");
-            }
-            else
-            {
-                builder
-                    .Append("COLLATE(")
-                    .Append(operation.ComputedColumnSql)
-                    .Append(", ")
-                    .Append(GenerateSqlLiteral(operation.Collation))
-                    .Append(")");
-            }
-
-            return;
+            ThrowNoStoredCalculatedColumns();
         }
 
-        builder.Append(operation.IsNullable ? " NULL" : " NOT NULL");
-
-        DefaultValue(operation.DefaultValue, operation.DefaultValueSql, columnType, builder);
-
-        string? identity = operation[SnowflakeAnnotationNames.Identity] as string;
-        if (identity != null
-            || operation[SnowflakeAnnotationNames.ValueGenerationStrategy] as SnowflakeValueGenerationStrategy?
-            == SnowflakeValueGenerationStrategy.AutoIncrement)
+        builder.Append(" AS ");
+        if (operation.Collation == null)
         {
-            builder.Append(" AUTOINCREMENT ");
-            if (string.IsNullOrEmpty(identity))
-            {
-                builder.Append(" START 1 INCREMENT 1 ORDER");
-            }
-            else
-            {
-                builder.Append(identity);
+            builder
+                .Append("(")
+                .Append(operation.ComputedColumnSql!)
+                .Append(")");
+        }
+        else
+        {
+            builder
+                .Append("COLLATE(")
+                .Append(operation.ComputedColumnSql!)
+                .Append(", ")
+                .Append(GenerateSqlLiteral(operation.Collation))
+                .Append(")");
+        }
+    }
 
-                if (!identity.Contains("ORDER", StringComparison.OrdinalIgnoreCase))
+    protected override void ColumnDefinition(
+        string? schema,
+        string table,
+        string name,
+        ColumnOperation operation,
+        IModel? model,
+        MigrationCommandListBuilder builder)
+    {
+        if (operation.ComputedColumnSql != null)
+        {
+            ComputedColumnDefinition(schema, table, name, operation, model, builder);
+        }
+        else
+        {
+            var columnType = operation.ColumnType ?? GetColumnType(schema, table, name, operation, model)!;
+            builder
+                .Append(DelimitIdentifier(name))
+                .Append(" ")
+                .Append(columnType);
+
+            if (operation.Collation != null)
+            {
+                builder
+                    .Append(" COLLATE ")
+                    .Append(GenerateSqlLiteral(operation.Collation));
+            }
+
+            builder.Append(operation.IsNullable ? " NULL" : " NOT NULL");
+
+            DefaultValue(operation.DefaultValue, operation.DefaultValueSql, columnType, builder);
+
+            string? identity = operation[SnowflakeAnnotationNames.Identity] as string;
+            if (identity != null
+                || operation[SnowflakeAnnotationNames.ValueGenerationStrategy] as SnowflakeValueGenerationStrategy?
+                == SnowflakeValueGenerationStrategy.AutoIncrement)
+            {
+                builder.Append(" AUTOINCREMENT");
+                if (string.IsNullOrEmpty(identity))
                 {
-                    // backward compatibility. Add order if it's not set
-                    builder.Append(" ORDER");
+                    builder.Append(" START 1 INCREMENT 1 ORDER");
+                }
+                else
+                {
+                    builder
+                        .Append(" ")
+                        .Append(identity);
+
+                    if (!identity.Contains("ORDER", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // backward compatibility. Add order if it's not set
+                        builder.Append(" ORDER");
+                    }
                 }
             }
         }
@@ -557,30 +601,31 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
             .EndCommand();
     }
 
-    protected override void ForeignKeyConstraint(AddForeignKeyOperation operation, IModel? model, MigrationCommandListBuilder builder)
-    {
-        base.ForeignKeyConstraint(operation, model, builder);
-    }
-
     protected override void Generate(
         InsertDataOperation operation,
         IModel? model,
         MigrationCommandListBuilder builder,
         bool terminate = true)
     {
-        var sqlBuilder = new StringBuilder();
-        foreach (var modificationCommand in GenerateModificationCommands(operation, model))
+        var rowCount = operation.Values.GetLength(0);
+        var columnCount = operation.Values.GetLength(1);
+        for (var currentRow = 0; currentRow < rowCount; currentRow++)
         {
-            SqlGenerator.AppendInsertOperation(
-                sqlBuilder,
-                modificationCommand,
-                0);
+            var rowValues = new object?[1, columnCount];
+            Array.Copy(operation.Values, currentRow * columnCount, rowValues, 0, columnCount);
 
-            builder
-                .Append(sqlBuilder.ToString())
-                .EndCommand();
+            var insertRowOperation = new InsertDataOperation
+            {
+                Schema = operation.Schema,
+                Table = operation.Table,
+                Columns = operation.Columns,
+                ColumnTypes = operation.ColumnTypes,
+                Values = rowValues
+            };
+            insertRowOperation.AddAnnotations(operation.GetAnnotations());
 
-            sqlBuilder.Clear();
+            // Snowflake.Data only supports one statement per command; generating one command per row
+            base.Generate(insertRowOperation, model, builder, terminate || currentRow != rowCount - 1);
         }
     }
 
@@ -590,34 +635,23 @@ public class SnowflakeMigrationsSqlGenerator : MigrationsSqlGenerator
         string? columnType,
         MigrationCommandListBuilder builder)
     {
-        if (defaultValueSql != null)
-        {
-            builder
-                .Append(" DEFAULT (")
-                .Append(defaultValueSql)
-                .Append(")");
-        }
-        else if (defaultValue != null)
+        if (defaultValue != null && defaultValueSql == null)
         {
             var typeMapping = (columnType != null
                                   ? Dependencies.TypeMappingSource.FindMapping(defaultValue.GetType(), columnType)
                                   : null)
                               ?? Dependencies.TypeMappingSource.GetMappingForValue(defaultValue);
-
-            string sqlLiteral;
             if (typeMapping is ISnowflakeCustomizedSqlLiteralProvider snowflakeCustomized)
             {
-                sqlLiteral = snowflakeCustomized.GenerateSqlLiteralForDdl(defaultValue);
-            }
-            else
-            {
-                sqlLiteral = typeMapping.GenerateSqlLiteral(defaultValue);
-            }
+                builder
+                    .Append(" DEFAULT ")
+                    .Append(snowflakeCustomized.GenerateSqlLiteralForDdl(defaultValue));
 
-            builder
-                .Append(" DEFAULT ")
-                .Append(sqlLiteral);
+                return;
+            }
         }
+
+        base.DefaultValue(defaultValue, defaultValueSql, columnType, builder);
     }
 
     private string DelimitIdentifier(string identifier)

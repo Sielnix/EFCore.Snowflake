@@ -72,9 +72,6 @@ public class SnowflakeComplianceTest : RelationalComplianceTestBase
         typeof(GraphUpdatesTestBase<>),
         typeof(ProxyGraphUpdatesTestBase<>),
 
-        // Migrations
-        typeof(MigrationsSqlGeneratorTestBase),
-
         // ModelBuilding
         typeof(ModelBuilderTest.ComplexCollectionTestBase),
         typeof(ModelBuilderTest.ComplexTypeTestBase),

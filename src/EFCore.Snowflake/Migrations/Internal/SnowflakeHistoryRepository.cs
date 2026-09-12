@@ -43,7 +43,7 @@ public class SnowflakeHistoryRepository : HistoryRepository, IHistoryRepository
         get
         {
             string query = $"""
-    SELECT TO_BOOLEAN(COUNT(1)) FROM INFORMATION_SCHEMA.TABLES 
+    SELECT TO_BOOLEAN(COUNT(1)) FROM INFORMATION_SCHEMA.TABLES
     WHERE TABLE_SCHEMA  = {StringMapping.GenerateSqlLiteral(TableSchema ?? "PUBLIC")} AND TABLE_NAME = {StringMapping.GenerateSqlLiteral(TableName)};
 """;
 
@@ -61,7 +61,6 @@ $$
 BEGIN
 
     {script}
-    
 END;
 $$;
 
@@ -90,16 +89,16 @@ $$;
 EXECUTE IMMEDIATE
 $$
 DECLARE
-	row_exists BOOLEAN;
+    row_exists BOOLEAN;
 BEGIN
-	SELECT 
-		TO_BOOLEAN(COUNT(1))
-	INTO
-		row_exists
-	FROM {SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} 
-		WHERE {SqlGenerationHelper.DelimitIdentifier(MigrationIdColumnName)} = {StringMapping.GenerateSqlLiteral(migrationId)};
-	
-    IF (row_exists = false) THEN 
+    SELECT
+        TO_BOOLEAN(COUNT(1))
+    INTO
+        row_exists
+    FROM {SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)}
+        WHERE {SqlGenerationHelper.DelimitIdentifier(MigrationIdColumnName)} = {StringMapping.GenerateSqlLiteral(migrationId)};
+
+    IF (row_exists = false) THEN
 """;
 
         return query;
@@ -111,16 +110,16 @@ BEGIN
 EXECUTE IMMEDIATE
 $$
 DECLARE
-	row_exists BOOLEAN;
+    row_exists BOOLEAN;
 BEGIN
-	SELECT 
-		TO_BOOLEAN(COUNT(1))
-	INTO
-		row_exists
-	FROM {SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} 
-		WHERE {SqlGenerationHelper.DelimitIdentifier(MigrationIdColumnName)} = {StringMapping.GenerateSqlLiteral(migrationId)};
-	
-    IF (row_exists) THEN 
+    SELECT
+        TO_BOOLEAN(COUNT(1))
+    INTO
+        row_exists
+    FROM {SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)}
+        WHERE {SqlGenerationHelper.DelimitIdentifier(MigrationIdColumnName)} = {StringMapping.GenerateSqlLiteral(migrationId)};
+
+    IF (row_exists) THEN
 """;
 
         return query;
@@ -256,7 +255,7 @@ CREATE TABLE {SqlGenerationHelper.DelimitIdentifier(LockTableName, TableSchema)}
     private IRelationalCommand CreateLockTableExistsCommand()
     {
         string sql = $"""
-                      SELECT 
+                      SELECT
                           TO_BOOLEAN(COUNT(1))
                       FROM
                           INFORMATION_SCHEMA.TABLES

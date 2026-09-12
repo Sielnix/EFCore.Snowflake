@@ -66,6 +66,67 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
             });
 
     [ConditionalFact]
+    public virtual async Task Create_table_with_column_facets()
+    {
+        await Test(
+            builder => { },
+            builder => { },
+            builder => builder.Entity(
+                "Snowmen", e =>
+                {
+                    e.Property<long>("Id")
+                        .UseIdentityColumn()
+                        .HasComment("Snowman number");
+                    e.Property<string>("Name")
+                        .UseCollation("pl_pl")
+                        .HasDefaultValue("Bałwan")
+                        .HasComment("Given by the children who built it");
+                }),
+            model =>
+            {
+                DatabaseTable table = Assert.Single(model.Tables);
+
+                DatabaseColumn idColumn = Assert.Single(table.Columns, c => c.Name == "Id");
+                Assert.NotNull(idColumn[SnowflakeAnnotationNames.IdentitySeed]);
+                Assert.Equal("Snowman number", idColumn.Comment);
+
+                DatabaseColumn nameColumn = Assert.Single(table.Columns, c => c.Name == "Name");
+                Assert.True(nameColumn.IsNullable);
+                Assert.Equal("pl_pl", nameColumn.Collation);
+                Assert.Equal("Given by the children who built it", nameColumn.Comment);
+            });
+
+        AssertSql(
+            """
+            CREATE TABLE "Snowmen" (
+                "Id" NUMBER(19,0) NOT NULL AUTOINCREMENT START 1 INCREMENT 1 ORDER COMMENT 'Snowman number',
+                "Name" VARCHAR(16777216) COLLATE 'pl_pl' NULL DEFAULT 'Bałwan' COMMENT 'Given by the children who built it',
+                CONSTRAINT "PK_Snowmen" PRIMARY KEY ("Id")
+            );
+            """);
+    }
+
+    [ConditionalFact]
+    public virtual async Task Alter_column_remove_identity()
+    {
+        await Test(
+            builder => builder.Entity("Snowmen").Property<int>("Id"),
+            builder => builder.Entity("Snowmen").Property<long>("Number").UseIdentityColumn(),
+            builder => builder.Entity("Snowmen").Property<long>("Number"),
+            model =>
+            {
+                DatabaseTable table = Assert.Single(model.Tables);
+                DatabaseColumn numberColumn = Assert.Single(table.Columns, c => c.Name == "Number");
+                Assert.Null(numberColumn[SnowflakeAnnotationNames.IdentitySeed]);
+            });
+
+        AssertSql(
+            """
+            ALTER TABLE "Snowmen" ALTER COLUMN "Number" DROP DEFAULT;
+            """);
+    }
+
+    [ConditionalFact]
     public virtual Task Add_column_with_defaultValue_clr()
         => Test(
             builder => builder.Entity("PeopleClr").Property<int>("Id"),
@@ -139,7 +200,7 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
     {
         if (stored)
         {
-            await Assert.ThrowsAsync<NotSupportedException>(() => base.Create_table_with_computed_column(stored));
+            await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_computed_with_collation(stored));
             return;
         }
 
@@ -303,7 +364,7 @@ public class MigrationsSnowflakeTest : MigrationsTestBase<MigrationsSnowflakeTes
     {
         if (stored == true)
         {
-            await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(stored));
+            await Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_column_make_computed(stored));
             return;
         }
 
